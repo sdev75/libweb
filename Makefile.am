@@ -61,7 +61,9 @@ view: code
 public:
 	cp -ur $(abs_builddir)/src/public $(abs_builddir)/dist/public
 
+build: view public
+
 run:
 	cd $(abs_builddir)/dist && php -S localhost:8080
 
-.PHONY: all clear code entry public env lib run FORCE
+.PHONY: all clear code entry public env lib run build FORCE

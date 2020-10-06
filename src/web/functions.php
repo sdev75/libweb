@@ -1,43 +1,5 @@
 <?php
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// GEOIP2 extension - must be installed manually
-if(class_exists('MaxMind\Db\Reader')){
-	function _geoip($ip){
-		$obj = new MaxMind\Db\Reader('/usr/local/share/geoip/country.mmdb');
-		$array = $obj->get(ip2long($ip));
-		if(isset($array['country'])){
-			$res = array(
-				'country_name' => $array['country']['names']['en'],
-				'country_iso_code' => $array['country']['iso_code'],
-				'country_iso2' => $array['country']['iso_code'],
-				'continent_code' => $array['continent']['code'],
-				'continent_name' => $array['continent']['names']['en'],
-			);
-			return $res;
-		}
-		$res = array(
-			'country_name' => false,
-			'country_iso_code' => false,
-			'country_iso2' => false,
-			'continent_code' => false,
-			'continent_name' => false,
-		);
-		return $res;
-	}
-}else{
-	function _geoip($ip){
-		$res = array(
-			'country_name' => false,
-			'country_iso_code' => false,
-			'country_iso2' => false,
-			'continent_code' => false,
-			'continent_name' => false,
-		);
-		return $res;
-	}
-}
-
 function _query(array $params,$autofill=false){
 	// build http_query using REQUEST_URI
 	if($autofill){
