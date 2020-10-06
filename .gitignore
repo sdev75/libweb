@@ -1,0 +1,17 @@
+.TODO/
+.vscode
+autom4te.cache
+build
+debug
+*.in
+*.in~
+aclocal.m4
+configure
+* copy*.*
+.build-m4/l*
+.build-aux/
+.gitmodules
+*.env
+*TODO
+src/ncurses
+.todo

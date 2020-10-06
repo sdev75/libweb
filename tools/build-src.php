@@ -1,0 +1,24 @@
+<?php
+
+include __DIR__.'/build-error.php';
+include __DIR__.'/../utils/envbuilder.php';
+include __DIR__.'/../utils/libbuilder.php';
+include __DIR__.'/../utils/srcbuilder.php';
+
+define("LIBPATH", __DIR__.'/..');
+define("CWD", getcwd());
+$opt = getopt('',['env:','in:','out:']);
+
+EnvBuilder::import($opt['env']);
+$env = EnvBuilder::getVars();
+LibBuilder::$version = file_get_contents(LIBPATH.'/VERSION');
+
+SrcBuilder::setEnvVars($env);
+SrcBuilder::setIncludePath(CWD.'/src');
+SrcBuilder::collectFiles($opt['in']);
+
+foreach(SrcBuilder::$files as $filename){
+	SrcBuilder::build($filename, $opt['in'],$opt['out']);
+}
+
+exit(0);
