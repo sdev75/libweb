@@ -264,7 +264,7 @@ class CodeBuilder {
 			throw new Exception(error_get_last());
 		}
 
-		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s\e[0m\n","Views",$filename);
+		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s\e[0m\n","Includes",$filename);
 	}
 
 	public static function build(string $filename, string $inpath, string $outpath){

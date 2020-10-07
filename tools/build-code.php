@@ -21,9 +21,8 @@ foreach(CodeBuilder::$files as $filename){
 	CodeBuilder::build($filename, $opt['in'],$opt['out']);
 }
 
-// dump routes in .cache/var/routes
-CodeBuilder::writeRoutesToFile(CWD.'/src/.cache/data/routes.php');
-CodeBuilder::writeViewsToFile(CWD.'/src/.cache/data/views.php');
-CodeBuilder::writeIncludesToFile(CWD.'/src/.cache/data/includes.php');
+CodeBuilder::writeRoutesToFile("{$opt['include-path']}/.cache/data/routes.php");
+CodeBuilder::writeViewsToFile("{$opt['include-path']}/.cache/data/views.php");
+CodeBuilder::writeIncludesToFile("{$opt['include-path']}/.cache/data/includes.php");
 
 exit(0);
