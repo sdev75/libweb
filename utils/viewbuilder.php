@@ -73,6 +73,10 @@ class ViewBuilder {
 		return $res;
 	}
 
+	public static function getIncludesByControllerName(string $name){
+		return isset(self::$includes[$name]) ? self::$includes[$name] : false;
+	}
+
 	public static function build(array $view, string $path_code, string $inpath, string $outpath){
 	
 		$buf = file_get_contents("{$path_code}/{$view['controller']}");
@@ -110,7 +114,10 @@ class ViewBuilder {
 		$buf .= $t->parse($buf_view);
 		$e=microtime(1);
 
-		// file_put_contents($finalname,$buf);
+
+		$includes = self::getIncludesByControllerName($view['controller']);
+		var_dump($includes);die;
+
 
 		$view_filename = "{$layout_filename}/{$script_filename}";
 		$output_filename = "{$outpath}/{$view['controller']}";

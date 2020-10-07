@@ -27,5 +27,4 @@ foreach(ViewBuilder::$views as $view){
 	ViewBuilder::build($view, $opt['path-code'], $opt['in'], $opt['out']);
 }
 
-
 exit(0);
