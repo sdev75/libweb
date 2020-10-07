@@ -108,17 +108,20 @@ class ViewBuilder {
 		$buf_view = str_replace("{% include script %}",$buf_script,$buf_layout);
 		unset($buf_layout,$buf_script,$t);
 		
-
 		$t = new ViewParser('',[]);
 		$b=microtime(1);
-		$buf .= $t->parse($buf_view);
+		$buf_view .= $t->parse($buf_view);
 		$e=microtime(1);
-
-
+	
 		$includes = self::getIncludesByControllerName($view['controller']);
-		var_dump($includes);die;
 
+		// TODO: clean up and improve the quality of code (still good though)
+		if(isset($includes['lib/libweb/view.php'])){
+			// definitely using the view
+			
+		}
 
+		$buf .= $buf_view;
 		$view_filename = "{$layout_filename}/{$script_filename}";
 		$output_filename = "{$outpath}/{$view['controller']}";
 
