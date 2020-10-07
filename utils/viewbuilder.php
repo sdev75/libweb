@@ -71,9 +71,9 @@ class ViewBuilder {
 	
 		$buf = file_get_contents("{$path_code}/{$view['controller']}");
 		$buf = self::stripHashComments($buf);
-		$buf = self::stripLineComments($buf);
-		$buf = self::stripMultilineComments($buf);
-		$buf = self::stripDoubleLines($buf);
+		//$buf = self::stripLineComments($buf); // bugfix: can break code like '//' 
+		//$buf = self::stripMultilineComments($buf);
+		//$buf = self::stripDoubleLines($buf);
 		if($buf === FALSE){
 			throw new Exception(error_get_last());
 		}
@@ -112,11 +112,11 @@ class ViewBuilder {
 
 		$dir = $outpath;
 		if(!is_dir($dir) && !mkdir($dir,0755,true)){
-			throw new Exception(error_get_last());
+			throw new Exception("Cannot create directory: '$dir'");
 		}
 
 		if(!file_put_contents($output_filename,$buf)){
-			throw new Exception(error_get_last());
+			throw new Exception("Cannot save to '$output_filename'");
 		}
 
 		unset($buf);

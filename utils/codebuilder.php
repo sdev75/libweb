@@ -70,6 +70,7 @@ class CodeBuilder {
 	public static $routes = [];
 	public static $routes_rmap = [];
 	public static $views = [];
+	public static $includes = [];
 
 	public static function setEnvVars(array $env){
 		self::$env = $env;
@@ -257,7 +258,7 @@ class CodeBuilder {
 		$buf = self::parseAndPatch($buf);
 		$ann = self::parseAnnotations($buf);
 		$ann->controller = self::extractControllerPath($filename, $inpath);
-
+		
 		self::buildRoutesFromAnnotation($ann);
 		self::buildViewsFromAnnotation($ann);
 
@@ -299,6 +300,8 @@ class CodeBuilder {
 				if(!file_exists($include_filename)){
 					throw new Exception("file_exists(): $include_filename ($needle)");
 				}
+
+				self::$includes []= "$type/$path";
 
 				$buf = str_replace($needle,file_get_contents($include_filename),$buf);
 				$buf = self::parseAndPatch($buf);

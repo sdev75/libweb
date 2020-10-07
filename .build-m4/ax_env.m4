@@ -8,6 +8,7 @@ CDEBUG=`tput dim`
 FBOLD=`tput bold`
 
 abs_srcdir=$(realpath $srcdir)
+abs_builddir=$(realpath .)
 abs_thisdir=$(realpath .)
 
 # force prefix to be set to current folder
@@ -17,3 +18,24 @@ if test "x$PWD" = "x$abs_srcdir" ; then
 	msg="Building in the root directory not allowed: $abs_srcdir ..."
 	AC_MSG_ERROR([${FBOLD}${CERR}$msg${CNUL}])
 fi
+
+printf "%-50s " "Checking configuration env data..."
+config_filename="$abs_builddir/src/config.env"
+if ! test -f "$config_filename"; then
+	msg="Missing configuration file: $config_filename";
+	AC_MSG_ERROR([${FBOLD}${CERR}$msg${CNUL}])
+fi
+printf "%-12s\n" "${COK}OK${CNUL}"
+
+ENV_BUF=$(cat $config_filename | grep "^DEPLOY_" )
+if test -z "$ENV_BUF"; then
+	DEPLOYABLE=0
+else
+	DEPLOYABLE=1
+	export $(echo "$ENV_BUF" | xargs)
+	AC_SUBST([DEPLOY_HOST])
+	AC_SUBST([DEPLOY_USER])
+	AC_SUBST([DEPLOY_PATH])
+fi
+AM_CONDITIONAL([DEPLOYABLE], [test x$DEPLOYABLE = x1])
+AC_SUBST([DEPLOYABLE])

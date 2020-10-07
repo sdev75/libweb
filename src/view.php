@@ -10,93 +10,6 @@ class View {
 	
 	public static $title = '';
 	public static $subtitle = '';
-	
-	public static $tags = [];
-
-	public static $stylesheets = [];
-	public static $javascripts = [];
-	
-	public static $cache;
-	public static $includes = [];
-	
-	public static $redis;
-	public static $cached_files = [];
-
-	public static function addJs($href,$type='base',$async=true,$defer=true){
-		if(!isset(self::$javascripts[$type])){
-			self::$javascripts[$type] = [];
-		}
-		self::$javascripts[$type][] = [$href,$async,$defer];
-	}
-
-	public static function addCss($href,$type='base',$media=''){
-		if(!isset(self::$stylesheets[$type])){
-			self::$stylesheets[$type] = [];
-		}
-		self::$stylesheets[$type][] = [$href,$media];
-	}
-	
-	public static function getJs(){
-		$res = [];
-		foreach(self::$javascripts as $type => $items){
-			$res[$type] = "";
-			foreach($items as $array){
-				$href = $array[0];
-				$async = $array[1];
-				$defer = $array[2];
-				
-				$x = str_replace('asset/js','',$href);
-				$filename ="{{ ASSET_JS_PATH }}/$x.js";
-				$filetime = filemtime($filename);
-				$href .= ".$filetime.js";
-				
-				$async = $async?' async ':' ';
-				$defer = $defer?' defer ':' ';
-				
-				$res[$type] .= "<script{$async}{$defer} src=\"$href\"></script>";
-			}
-		}
-		return $res;
-	}
-
-	public static function getCss(){
-		$res = [];
-		foreach(self::$stylesheets as $type => $items){
-			$res[$type] = "";
-			foreach($items as $data){
-				$href = $data[0];
-				$media = $data[1];
-				$x = str_replace('asset/css','',$href);
-				$filename ="{{ PATH_ASSET_CSS }}/$x.css";
-				$filetime = filemtime($filename);
-				$href .= ".$filetime.css";
-				if(!empty($media)){
-					$media = " media=\"$media\"";
-				}
-				$res[$type] .= "<link async href=\"$href\" rel=\"stylesheet\"{$media}>";
-			}
-		}
-		return $res;
-	}
-	
-	public static function getScriptElem($href,$async=true,$defer=true){
-		$x = str_replace('asset/js','',$href);
-		$filename ="{{ PATH_ASSET_JS }}/$x.js";
-		$filetime = filemtime($filename);
-		$href .= ".$filetime.js";
-		if($async){
-			$async = ' async ';
-		}else{
-			$async = ' ';
-		}
-		if($defer){
-			$defer = ' defer ';
-		}else{
-			$defer = ' ';
-		}
-		$res = "<script{$async}{$defer}src=\"$href\"></script>";
-		return $res;
-	}
 
 	public static function getAltLangLinks($route,$path){
 		$langs = $route['langs'];
@@ -153,97 +66,6 @@ class View {
 			return '';
 		}
 		return implode('',$res);
-	}
-
-	// ['site'=>'companyllc','creator'=>'companyllc','title'=>'','desc'=>,'image'=>'']
-	public static function getTwitterCardHtml(array $array){
-		$res = '';
-		$title = htmlentities($array['title'],ENT_QUOTES);
-		$desc = htmlentities($array['desc'],ENT_QUOTES);
-		
-		$res .= "<meta name=\"twitter:card\" content=\"summary\">";
-		$res .= "<meta name=\"twitter:site\" content=\"@{$array['site']}\">";
-		$res .= "<meta name=\"twitter:creator\" content=\"@{$array['creator']}\">";
-		$res .= "<meta name=\"twitter:title\" content=\"{$title}\">";
-		$res .= "<meta name=\"twitter:description\" content=\"{$desc}\">";
-		$res .= "<meta name=\"twitter:image\" content=\"{$array['image']}\">";
-		return $res;
-	}
-	
-	// ['title'=>'','desc'=>,'url'=>'CANONICAL_URL_HERE','site_name'=>'Site Name','image'=>'','image:width'=>'640','image:height'=>'480']
-	public static function getOpenGraphHtml(array $array){
-		$res = '';
-		$title = htmlentities($array['title'],ENT_QUOTES);
-		$desc = htmlentities($array['desc'],ENT_QUOTES);
-		$res .= "<meta property=\"og:type\" content=\"product\">";
-		$res .= "<meta property=\"og:title\" content=\"{$title}\">";
-		$res .= "<meta property=\"og:description\" content=\"{$desc}\">";
-		$res .= "<meta property=\"og:url\" content=\"{$array['url']}\">";
-		$res .= "<meta property=\"og:site_name\" content=\"{$array['site_name']}\">";
-		$res .= "<meta property=\"og:image\" content=\"{$array['image']}\">";
-		$res .= "<meta property=\"og:image:width\" content=\"{$array['image:width']}\">";
-		$res .= "<meta property=\"og:image:height\" content=\"{$array['image:height']}\">";
-		return $res;
-	}
-	
-	private static function combine(){
-		$cache = &self::$cache;
-		$c = new ViewCombiner();
-		$layout_buf = $c->parse($cache->layout_filename);
-		self::$includes = $c->includes;
-		$script_buf = $c->parse($cache->script_filename);
-		self::$includes += $c->includes;
-		$buf = str_replace("{% include script %}",$script_buf,$layout_buf);
-		unset($layout_buf,$script_buf,$c);
-		return $buf;
-	}
-	
-	public static function parseblock($path,$lang,array $vars){
-		$p = new ViewParser($lang,$vars);
-		$buf = file_get_contents("{{ PATH_VIEW }}/block/{$path}.php");
-		$res = $p->parse($buf);
-		return $res;
-	}
-	
-	private static function parse($buf,$lang,array $vars){
-		$cache = &self::$cache;
-		
-		if(!is_dir($cache->path)){
-			if(!mkdir($cache->path,0775,true)){
-				$writable = (int) is_writable($cache->path);
-				$msg = "Render - Unable to create dir: {$cache->path} - writable: $writable";
-				throw new Exception($msg);
-			}
-		}
-
-		$p = new ViewParser($lang,$vars);
-		$_bb=microtime(1);
-		$buf = $p->parse($buf);
-		$_ee=microtime(1);
-		unset($p);
-		
-		if(!file_put_contents($cache->filename,$buf)){
-			$writable = (int) is_writable($cache->filename);
-			$msg = "Cannot write to {$cache->filename} - file writable: $writable";
-			throw new Exception($msg);
-		}
-
-		unset($buf);
-		
-		$cache->time_parsed = sprintf("%4f",$_ee-$_bb);
-	}
-
-	public static function initCache(){
-		self::$cache = new ViewPageCache();
-		self::$cache->init(self::$layout,self::$script,self::$lang,self::$tags);
-	}
-	
-	public static function expired():bool{
-		if(!self::$cache){
-			self::initCache();
-		}
-
-		return self::$cache->expired;
 	}
 	
 	public static function setRoute(array $route){
@@ -333,27 +155,6 @@ class View {
 		$_SERVER['_VM_E'] = memory_get_usage();
 	}
 
-	public static function setAltAmpLink($link){
-		self::$vars['_amplink'] = "<link rel=\"amphtml\" href=\"{$link}\">";
-	}
-
-	public static function scriptExists($path){
-		$filename = "{{ VIEW_PATH }}/script/{$path}.php";
-		$res = is_file($filename);
-		return $res;
-	}
-	
-	public static function getScriptFilename($path){
-		$res = "{{ VIEW_PATH }}/script/{$path}.php";
-		return $res;
-	}
-	
-	public static function stripSpaces($buf){
-		$buf = str_replace(["\t","\n","\r"],'',$buf);
-		$buf = preg_replace('/<!--(.*)-->/Uis','',$buf);
-		return $buf;
-	}
-
 	public static function setCanonicalLink($link){
 		if(empty($link)){
 			self::$vars['_canonlink'] = "";
@@ -368,3 +169,4 @@ class View {
 	}
 	
 }
+
