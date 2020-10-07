@@ -71,6 +71,7 @@ class CodeBuilder {
 	public static $routes_rmap = [];
 	public static $views = [];
 	public static $includes = [];
+	public static $includes_sorted = [];
 
 	public static function setEnvVars(array $env){
 		self::$env = $env;
@@ -254,14 +255,16 @@ class CodeBuilder {
 	}
 
 	public static function build(string $filename, string $inpath, string $outpath){
+		$controller = self::extractControllerPath($filename, $inpath);
+
 		$buf = file_get_contents($filename);
-		$buf = self::parseAndPatch($buf);
+		$buf = self::parseAndPatch($buf,$controller);
 		$ann = self::parseAnnotations($buf);
-		$ann->controller = self::extractControllerPath($filename, $inpath);
+		$ann->controller = $controller;
 		
 		self::buildRoutesFromAnnotation($ann);
 		self::buildViewsFromAnnotation($ann);
-
+		
 		$buf = self::stripHashComments($buf);
 		$buf = self::stripDoubleLines($buf);
 		$buf = self::patch($buf);
@@ -270,6 +273,9 @@ class CodeBuilder {
 		if(!is_dir($dir) && !mkdir($dir,0755,true)){
 			throw new Exception("Failed to create directory: '$dir'");
 		}
+
+		// [controller] -> [] includes...
+		self::$includes_sorted [$ann->controller]= self::$includes;
 
 		file_put_contents($finalname,$buf);
 		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s\e[0m\n",$filename,$finalname);
@@ -283,16 +289,18 @@ class CodeBuilder {
 		return $buf;
 	}
 
-	public static function parseAndPatch(string $buf) {
+	public static function parseAndPatch(string $buf, $controller) {
 		
 		$buf = self::patchEnvVars($buf);
 
-		if(preg_match_all("#@include '([a-zA-Z_.]+)/([^']+)';[ ]*#",$buf,$matches)){
+		if(preg_match_all('~#include "([^"]+)"~',$buf,$matches)){
 			$len = count($matches[0]);
+		
 			for($i=0;$i<$len;$i++){
 				$needle = $matches[0][$i];
-				$type = $matches[1][$i];
-				$path = $matches[2][$i];
+				$path_arr = explode('/',$matches[1][$i]);
+				$type = array_shift($path_arr);
+				$path = implode('/',$path_arr);
 
 				$include_path = self::$include_path;
 				$include_filename = "{$include_path}/$type/$path";
@@ -300,14 +308,17 @@ class CodeBuilder {
 				if(!file_exists($include_filename)){
 					throw new Exception("file_exists(): $include_filename ($needle)");
 				}
-
-				self::$includes []= "$type/$path";
-
-				$buf = str_replace($needle,file_get_contents($include_filename),$buf);
-				$buf = self::parseAndPatch($buf);
+				
+				self::$includes[$controller] []= "$type/$path";
+			
+				$buf_include = file_get_contents($include_filename);
+				$buf = str_replace($needle,$buf_include,$buf);
 			}
+
+			// support recursive parsing and patching
+			$buf = self::parseAndPatch($buf, $controller);
 		}
-		
+
 		$buf = self::patchEnvVars($buf);
 		return $buf;
 	}

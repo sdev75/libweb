@@ -7,19 +7,21 @@ include __DIR__.'/../utils/codebuilder.php';
 
 define("LIBPATH", __DIR__.'/..');
 define("CWD", getcwd());
-$opt = getopt('',['env:','in:','out:']);
+$opt = getopt('',['env:','in:','out:','include-path:']);
 
 EnvBuilder::import($opt['env']);
 $env = EnvBuilder::getVars();
 LibBuilder::$version = file_get_contents(LIBPATH.'/VERSION');
 
 CodeBuilder::setEnvVars($env);
-CodeBuilder::setIncludePath(CWD.'/src');
+CodeBuilder::setIncludePath($opt['include-path']);
 CodeBuilder::collectFiles($opt['in']);
 
 foreach(CodeBuilder::$files as $filename){
 	CodeBuilder::build($filename, $opt['in'],$opt['out']);
 }
+var_dump(CodeBuilder::$includes_sorted);
+exit(1);
 
 // dump routes in .cache/var/routes
 CodeBuilder::writeRoutesToFile(CWD.'/src/.cache/data/routes.php');
