@@ -1,6 +1,6 @@
 <?php
 
-class worker{
+class CliWorker{
 	public static $id;
 	public static $name;
 	public static $code;
@@ -97,21 +97,5 @@ class worker{
 			'item_id' => self::$item_id,
 		]);
 		return $log_id;
-	}
-}
-
-class ts {
-	public static $data;
-
-	public static function reset($name,$val=0){
-		self::$data[$name]=$val;
-	}
-
-	public static function passMoreThan($name,$s){
-		return (bool) ((time()-self::$data[$name]) > $s);
-	}
-
-	public static function passLessThan($name,$s){
-		return (bool) ((time()-self::$data[$name]) < $s);
 	}
 }

@@ -43,3 +43,8 @@ function _shutdown_handler(){
 set_error_handler('_error_handler');
 set_exception_handler('_exception_handler');
 register_shutdown_function('_shutdown_handler');
+
+
+mb_internal_encoding('UTF-8');
+$_SERVER['_TIME_START'] = microtime(1);
+$_SERVER['_MEM_START'] = memory_get_usage();

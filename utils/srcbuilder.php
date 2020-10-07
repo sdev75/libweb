@@ -85,7 +85,7 @@ class SrcBuilder {
 		
 		$buf = self::patchEnvVars($buf);
 
-		if(preg_match_all("#=? ?@include '([a-zA-Z_.]+)/([^']+)';[ ]*#",$buf,$matches)){
+		if(preg_match_all("#=? ?@include '([a-zA-Z_.:]+)/([^']+)';[ ]*#",$buf,$matches)){
 			$len = count($matches[0]);
 			for($i=0;$i<$len;$i++){
 				$needle = $matches[0][$i];
@@ -94,6 +94,9 @@ class SrcBuilder {
 
 				$include_path = self::$include_path;
 				$include_filename = "{$include_path}/$type/$path";
+				if(substr($include_filename, -4) !== '.php'){
+					$include_filename .= '.php';
+				}
 
 				if(!file_exists($include_filename)){
 					throw new Exception("file_exists(): $include_filename ($needle)");

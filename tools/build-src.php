@@ -7,14 +7,14 @@ include __DIR__.'/../utils/srcbuilder.php';
 
 define("LIBPATH", __DIR__.'/..');
 define("CWD", getcwd());
-$opt = getopt('',['env:','in:','out:']);
+$opt = getopt('',['env:','in:','out:','include-path:']);
 
 EnvBuilder::import($opt['env']);
 $env = EnvBuilder::getVars();
 LibBuilder::$version = file_get_contents(LIBPATH.'/VERSION');
 
 SrcBuilder::setEnvVars($env);
-SrcBuilder::setIncludePath(CWD.'/src');
+SrcBuilder::setIncludePath($opt['include-path']);
 SrcBuilder::collectFiles($opt['in']);
 
 foreach(SrcBuilder::$files as $filename){

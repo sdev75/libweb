@@ -20,18 +20,17 @@ env:
 	php "$(abs_srcdir)/tools/build-env.php" < $$in > $$out; \
 	echo -e "Env file saved to: $$out";
 
-lib:
-	@\
-	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
-	php "$(abs_srcdir)/tools/build-lib.php" \
-		--env "$(abs_builddir)/src/.cache/config.env" \
-		--in "$(abs_srcdir)/src" \
-		--out "$(abs_builddir)/src/.cache/lib" \
+lib: env
+	version=$$(cat ${abs_srcdir}/VERSION); \
+	mkdir $(abs_builddir)/src/.cache; \
+	mkdir $(abs_builddir)/src/.cache/lib; \
+	cp -ur $(abs_srcdir)/src $(abs_builddir)/src/.cache/lib/libweb-$$version \
 	&& \
 	php "$(abs_srcdir)/tools/build-src.php" \
 		--env "$(abs_builddir)/src/.cache/config.env" \
 		--in "$(abs_builddir)/src/.cache/lib" \
-		--out "$(abs_builddir)/src/.cache/lib"
+		--out "$(abs_builddir)/src/lib" \ 
+		--include-path "$(abs_builddir)/src"
 
 code: lib
 	@\
@@ -39,15 +38,17 @@ code: lib
 	php "$(abs_srcdir)/tools/build-code.php" \
 		--env "$(abs_builddir)/src/.cache/config.env" \
 		--in "$(abs_builddir)/src/code" \
-		--out "$(abs_builddir)/src/.cache/code"
+		--out "$(abs_builddir)/src/.cache/code" \
+		--include-path "$(abs_builddir)/src"
 
-entry: code
-	@\
-	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
-	php "$(abs_srcdir)/tools/build-src.php" \
-		--env "$(abs_builddir)/src/.cache/config.env" \
-		--in "$(abs_builddir)/src/entry" \
-		--out "$(abs_builddir)/dist/entry"
+# entry: code
+# 	@\
+# 	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
+# 	php "$(abs_srcdir)/tools/build-src.php" \
+# 		--env "$(abs_builddir)/src/.cache/config.env" \
+# 		--in "$(abs_builddir)/src/entry" \
+# 		--out "$(abs_builddir)/dist/entry" \
+# 		--include-path "$(abs_builddir)/src"
 
 view: code
 	@\
