@@ -8,6 +8,7 @@ class ViewBuilder {
 	public static $env = [];
 	public static $views = [];
 	public static $include_path = "";
+	public static $includes = "";
 
 	public static function setEnvVars(array $env){
 		self::$env = $env;
@@ -60,6 +61,11 @@ class ViewBuilder {
 	public static function loadViewsToParse(string $inpath){
 		eval('$views = ' . file_get_contents($inpath).';');
 		self::$views = $views;
+	}
+
+	public static function loadCodeIncludes(string $inpath){
+		eval('$includes = ' . file_get_contents($inpath).';');
+		self::$includes = $includes;
 	}
 
 	public static function getFinalFilename(string $filename, string $inpath, string $outpath){

@@ -79,6 +79,7 @@ view: code
 		--env "$(abs_builddir)/src/.cache/config.env" \
 		--in "$(abs_builddir)/src/view" \
 		--out "$(abs_builddir)/dist/code" \
+		--include-path "$(abs_builddir)/src" \
 		--path-code "$(abs_builddir)/src/.cache/code"
 
 public:
