@@ -40,14 +40,6 @@ function _url($uri,$query=false,$autofill=false){
 
 function _uri($uri,$query=false,$autofill=false){
 	$res = trim("$uri",'/');
-//	if(!empty(c::$links)){
-//		$path = str_replace('/','_',$res);
-//		if(isset(c::$links[$path])){
-//			$res = substr(c::$links[$path]['base_url'],1) . c::$links[$path]['uri'];
-//		}else{
-//			error_log("[WARNING] _uri(): path '$res' not found in the links'");
-//		}
-//	}
 	
 	if($query || $autofill){
 		if(is_array($query)){
@@ -210,17 +202,6 @@ function _randnum28(){
 	$x = mt_rand(1,9).strrev($x);
 	$x = str_pad($x,28,'0',STR_PAD_RIGHT);
 	return $x;
-}
-
-function _parseEmailTpl_todelete($content,array $array=array()){
-	if(!empty($array)){
-		foreach($array as $key=>$value){
-			$key = strtoupper($key);
-			$content = str_replace("%$key%",$value,$content);
-		}
-	}
-	$res = nl2br($content);
-	return $res;
 }
 
 function _parseEmailTpl($buf,array $vars=[]){
