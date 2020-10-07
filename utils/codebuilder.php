@@ -71,7 +71,6 @@ class CodeBuilder {
 	public static $routes_rmap = [];
 	public static $views = [];
 	public static $includes = [];
-	public static $includes_sorted = [];
 
 	public static function setEnvVars(array $env){
 		self::$env = $env;
@@ -254,6 +253,20 @@ class CodeBuilder {
 		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s\e[0m\n","Views",$filename);
 	}
 
+	public static function writeIncludesToFile(string $filename){
+		$dir = pathinfo($filename,PATHINFO_DIRNAME);
+		if(!is_dir($dir) && !mkdir($dir,0755,true)){
+			throw new Exception(error_get_last());
+		}
+
+		$buf = self::printExport(self::$includes);
+		if(!file_put_contents($filename,$buf)){
+			throw new Exception(error_get_last());
+		}
+
+		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s\e[0m\n","Views",$filename);
+	}
+
 	public static function build(string $filename, string $inpath, string $outpath){
 		$controller = self::extractControllerPath($filename, $inpath);
 
@@ -273,9 +286,6 @@ class CodeBuilder {
 		if(!is_dir($dir) && !mkdir($dir,0755,true)){
 			throw new Exception("Failed to create directory: '$dir'");
 		}
-
-		// [controller] -> [] includes...
-		self::$includes_sorted [$ann->controller]= self::$includes;
 
 		file_put_contents($finalname,$buf);
 		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s\e[0m\n",$filename,$finalname);

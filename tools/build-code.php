@@ -20,11 +20,10 @@ CodeBuilder::collectFiles($opt['in']);
 foreach(CodeBuilder::$files as $filename){
 	CodeBuilder::build($filename, $opt['in'],$opt['out']);
 }
-var_dump(CodeBuilder::$includes_sorted);
-exit(1);
 
 // dump routes in .cache/var/routes
 CodeBuilder::writeRoutesToFile(CWD.'/src/.cache/data/routes.php');
 CodeBuilder::writeViewsToFile(CWD.'/src/.cache/data/views.php');
+CodeBuilder::writeIncludesToFile(CWD.'/src/.cache/data/includes.php');
 
 exit(0);
