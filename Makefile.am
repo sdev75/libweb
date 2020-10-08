@@ -80,7 +80,8 @@ view: code
 		--in "$(abs_builddir)/src/view" \
 		--out "$(abs_builddir)/dist/code" \
 		--include-path "$(abs_builddir)/src" \
-		--path-code "$(abs_builddir)/dist/code"
+		--path-code "$(abs_builddir)/dist/code" \
+		$(DFLAGS)
 
 public:
 	cp -ur $(abs_builddir)/src/public $(abs_builddir)/dist/public

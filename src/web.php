@@ -41,6 +41,8 @@ define('_BASEURL',$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'{{ APP
 define('_BASEURI','{{ APP_BASEURI }}');
 define('_LANG_DEF','{{ LANG_DEF }}');
 
+$_view_vars = [];
+
 #if DEBUG
 if(isset($_GET['debug']) && $_GET['debug'] === '33967'){
 	$_SERVER['_GT_BEG'] = microtime(1);

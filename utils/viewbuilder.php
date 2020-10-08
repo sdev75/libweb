@@ -9,6 +9,7 @@ class ViewBuilder {
 	public static $views = [];
 	public static $include_path = "";
 	public static $includes = "";
+	public static $pp = null;
 
 	public static function setEnvVars(array $env){
 		self::$env = $env;
@@ -170,8 +171,21 @@ class ViewBuilder {
 			$buf .= $t;
 		}
 
+		
+		$prolog = file_get_contents(self::$include_path.'/lib/libweb/view.prolog.php');
+		$buf .= substr($prolog,5);
+		if(self::$pp){
+			$buf = self::$pp->parseIfElseCond($buf);
+		}
+
 		$buf .= "\n?>\n";
 		$buf .= $buf_view;
+
+		$epilog = file_get_contents(self::$include_path.'/lib/libweb/view.epilog.php');
+		$buf .= $epilog;
+		if(self::$pp){
+			$buf = self::$pp->parseIfElseCond($buf);
+		}
 		
 		self::writeOutputToFile($output_filename, $buf);
 		self::writeOutputToStdout($view_filename, $output_filename, $_e-$_b);
