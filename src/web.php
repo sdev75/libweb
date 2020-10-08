@@ -1,67 +1,35 @@
 <?php
 
-function _error_handler_todelete($error_level, $error_message, $error_file, $error_line,$error_context){
-	$ip = $_SERVER['REMOTE_ADDR'];
-	$str = "$ip - ";
-	$str .= "_error_handler(): $error_message - [$error_line] $error_file -  $error_level";
-	error_log($str);
-}
+function _shut(){
 
-function _shutdown_handler(){
-
-	$err = error_get_last();
-	if (!isset($err)){
+	$e = error_get_last();
+	if($e === NULL)
 		return;
-	}
 
-	$error_types = array(
-		E_USER_ERROR      => 'USER_ERROR',
-		E_ERROR           => 'ERROR',
-		E_PARSE           => 'PARSE',
-		E_CORE_ERROR      => 'CORE_ERROR',
-		E_CORE_WARNING    => 'CORE_WARNING',
-		E_COMPILE_ERROR   => 'COMPILE_ERROR',
-		E_COMPILE_WARNING => 'COMPILE_WARNING',
-		E_RECOVERABLE_ERROR => 'RECOVERABLE_ERROR',
-	);
+	$fmt = "[shut] File: {$e['file']} @ {$e['line']} Type: {$e['type']} IP: {$_SERVER['REMOTE_ADDR']}";
+	error_log($fmt);
 
-	if(!isset($error_types[$err['type']])){
-		return;
-	}
-	
-	$type = $error_types[$err['type']];
-	$str = "_shutdown_handler($type): {$err['message']} - {$err['file']}@{$err['line']} ({$_SERVER['REMOTE_ADDR']})";
-	error_log($str);
-
-	if($err['type'] === E_COMPILE_ERROR || $err['type'] === E_PARSE || $err['type'] === E_USER_ERROR){
-		if(ob_get_level()){
+	if($e['type'] === E_COMPILE_ERROR || $e['type'] === E_PARSE || $err['type'] === E_USER_ERROR){
+		if(ob_get_level())
 			ob_clean();
-		}
 		header('HTTP/1.1 500 Internal Server Error');
 		include '{{ PATH_PUBLIC }}/error/500.html';
-		exit;
+		exit(1);
 	}
-	if(ob_get_level()){
-		ob_clean();
-	}
-	header('HTTP/1.1 500 Internal Server Error');
-	include '{{ PATH_PUBLIC }}/error/500.html';
-	exit;
 }
 
-function _exception_handler($e){
+function _except($e){
 	if($e->getCode() == 42000){
-		error_log("_exception_handler() [DATABASE] : ".db::$query);
+		error_log("[except] DB Error 42000: ".db::$query);
 	}
-	
-	$msg = print_r($e,true);
-	$line = $e->getLine(); 
-	trigger_error("_exception_handler(): ".$e->getMessage() . " [$line]",E_USER_ERROR);
+
+	$msg = $e->getMessage();
+	$ln = $e->getLine(); 
+	trigger_error("[except] [line: $ln] $msg", E_USER_ERROR);
 }
 
-//set_error_handler('_error_handler');
-set_exception_handler('_exception_handler');
-register_shutdown_function('_shutdown_handler');
+set_exception_handler('_except');
+register_shutdown_function('_shut');
 
 ob_start();
 mb_internal_encoding('UTF-8');
@@ -72,26 +40,23 @@ define('_BASEURL',$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'{{ APP
 define('_BASEURI','{{ APP_BASEURI }}');
 define('_PATH',!empty($_SERVER['REDIRECT_C'])?$_SERVER['REDIRECT_C']:'{{ PATH_DEF }}');
 define('_LANG_DEF','{{ LANG_DEF }}');
-
 define('_AMP',false);
 define('_CANONICAL_URL',rtrim(mb_strtolower($_SERVER['SCRIPT_URI']),'/'));
 
-$uri = $_SERVER['REQUEST_URI'];
-
+$t = $_SERVER['REQUEST_URI'];
 // remove query string
-if(false !== ($pos=mb_strrpos($uri,'?'))){
-	$uri = mb_substr($uri,0,$pos);
+if(false !== ($pos=mb_strrpos($t,'?'))){
+	$t = mb_substr($t,0,$pos);
 }
-
 // remove basepath from uri
-if(mb_strpos($uri,'{{ APP_BASEURI }}')===0){
-	$uri = mb_substr($uri,mb_strlen('{{ APP_BASEURI }}'));
+if(mb_strpos($t,'{{ APP_BASEURI }}')===0){
+	$t = mb_substr($t,mb_strlen('{{ APP_BASEURI }}'));
 }
 
 if(!empty($_SERVER['REDIRECT_LANG'])){
-	define('_URI',mb_substr($uri,3));
+	define('_URI',mb_substr($t,3));
 	define('_LANG',$_SERVER['REDIRECT_LANG']);
 }else{
-	define('_URI',$uri);
+	define('_URI',$t);
 	define('_LANG','{{ LANG_DEF }}');
 }
