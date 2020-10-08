@@ -21,7 +21,6 @@ SrcBuilder::collectFiles($opt['in']);
 SrcBuilder::$pp = new Preprocessor();
 SrcBuilder::$pp->vars['debug'] = $opt['debug'];
 
-var_dump($opt['debug']);
 foreach(SrcBuilder::$files as $filename){
 	SrcBuilder::build($filename, $opt['in'],$opt['out']);
 }

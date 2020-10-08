@@ -57,7 +57,7 @@ class Preprocessor {
 			$newbuf .= mb_substr($buf,$endif+$endif_offset);
 			$buf = $newbuf;
 		}
-		var_dump($buf);exit(1);
+	
 		return $buf;
 	}
 }

@@ -390,6 +390,11 @@ class CodeBuilder {
 		$buf = file_get_contents($filename);
 		$buf = self::parseAndPatch($buf,$c_meta->path);
 
+		if(self::doesIncludeExist($c_meta->path,'lib/libweb/web.php')){
+			$epilog = file_get_contents(self::$include_path.'/lib/libweb/web.epilog.php');
+			$buf .= $epilog;
+		}
+
 		$c_meta = self::getMetadataFromAnnotations($buf, $c_meta);
 		if(!$c_meta->valid){
 			throw new Exception("Invalid controller meta#2 for '$filename'");
@@ -481,9 +486,18 @@ class CodeBuilder {
 			// support recursive parsing and patching
 			$buf = self::parseAndPatch($buf, $controller_path);
 		}
-
+	
 		$buf = self::patchEnvVars($buf);
 		return $buf;
+	}
+
+	public static function doesIncludeExist(string $path, string $val){
+		if(!isset(self::$includes[$path])){
+			return false;
+		}
+
+		$res = array_search($val, self::$includes[$path]);
+		return $res !== FALSE;
 	}
 
 }
