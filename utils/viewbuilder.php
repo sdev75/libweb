@@ -169,7 +169,7 @@ class ViewBuilder {
 			EOT;
 			$buf .= $t;
 		}
-		var_dump($buf_view);exit(1);
+
 		$buf .= "\n?>\n";
 		$buf .= $buf_view;
 		
