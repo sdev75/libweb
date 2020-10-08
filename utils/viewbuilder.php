@@ -32,6 +32,11 @@ class ViewBuilder {
 		return $buf;
 	}
 
+	public static function stripHtmlSpaces($buf){
+		$buf = str_replace("> <","><",$buf);
+		return $buf;
+	}
+
 	public static function stripHashComments($buf){
 		$buf = preg_replace("~^[#]{1}[^\\n]*\\n~m",'',$buf);
 		return $buf;
@@ -114,7 +119,6 @@ class ViewBuilder {
 		}
 
 		$buf = self::stripHashComments($buf);
-		//$buf = self::replaceViewAssignments($buf);
 
 		$layout_filename = "{$inpath}/layout/{$view['layout']}.phtml";
 		$script_filename = "{$inpath}/script/{$view['script']}.phtml";
@@ -125,17 +129,16 @@ class ViewBuilder {
 		$view_exists = true;
 		if(!file_exists($layout_filename)){
 			fprintf(STDERR,
-			"\e[0;93mWARN: VIEW LAYOUT not found: $layout_filename\e[0m\n");
+			"\e[0;93mWARNING: VIEW LAYOUT not found: $layout_filename\e[0m\n");
 			$view_exists = false;
 		}
 		if($view_exists && !file_exists($script_filename)){
 			fprintf(STDERR,
-			"\e[0;93mWARN: VIEW SCRIPT not found: $script_filename\e[0m\n");
+			"\e[0;93mWARNING: VIEW SCRIPT not found: $script_filename\e[0m\n");
 			$view_exists = false;
 		}
 		if(!$view_exists){
 			self::writeOutputToFile($output_filename, $buf);
-		
 			self::writeOutputToStdout($view_filename, $output_filename);
 			return;
 		}
@@ -154,19 +157,21 @@ class ViewBuilder {
 
 		unset($buf_layout,$buf_script,$t);
 
+		
+		$buf_view = self::stripSpaces($buf_view);
+		$buf_view = self::stripHtmlSpaces($buf_view);
+
 		// TODO: clean up and improve the quality of code (still good though)
 		$includes = self::getIncludesByControllerName($view['controller']);
-		if(self::doesIncludeExist($includes,'lib/libweb/view.php')){
+		if(self::doesIncludeExist($includes,'lib/libweb/session')){
 			// definitely using the view
 			$t = <<< EOT
 				if(!empty(\$_SESSION['userdata'])){
 					\$_view_vars['_user'] = \$_SESSION['userdata'];
 				}
-				\$_view_vars = view::\$vars;
 			EOT;
 			$buf .= $t;
 		}
-
 
 		$buf .= "\n?>\n";
 		$buf .= $buf_view;

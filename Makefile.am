@@ -55,7 +55,7 @@ lib: env
 code: lib
 	@\
 	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
-	rm -r "$(abs_builddir)/src/.cache/code"; \
+	rm -r "$(abs_builddir)/dist/code"; \
 	php "$(abs_srcdir)/tools/build-code.php" \
 		--env "$(abs_builddir)/src/.cache/config.env" \
 		--in "$(abs_builddir)/src/code" \
@@ -74,7 +74,6 @@ code: lib
 view: code
 	@\
 	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
-	rm -r "$(abs_builddir)/dist/code"; \
 	php "$(abs_srcdir)/tools/build-view.php" \
 		--env "$(abs_builddir)/src/.cache/config.env" \
 		--in "$(abs_builddir)/src/view" \
