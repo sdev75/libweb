@@ -1,7 +1,6 @@
 <?php
 
 function _shut(){
-
 	$e = error_get_last();
 	if($e === NULL)
 		return;
@@ -9,7 +8,9 @@ function _shut(){
 	$fmt = "[shut] File: {$e['file']} @ {$e['line']} Type: {$e['type']} IP: {$_SERVER['REMOTE_ADDR']}";
 	error_log($fmt);
 
-	if($e['type'] === E_COMPILE_ERROR || $e['type'] === E_PARSE || $err['type'] === E_USER_ERROR){
+	if($e['type'] === E_COMPILE_ERROR ||
+		$e['type'] === E_PARSE || 
+		$e['type'] === E_USER_ERROR){
 		if(ob_get_level())
 			ob_clean();
 		header('HTTP/1.1 500 Internal Server Error');
@@ -38,31 +39,10 @@ set_include_path('{{ INCLUDE_PATH }}');
 
 define('_BASEURL',$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'{{ APP_BASEURI }}');
 define('_BASEURI','{{ APP_BASEURI }}');
-define('_PATH',!empty($_SERVER['REDIRECT_C'])?$_SERVER['REDIRECT_C']:'{{ PATH_DEF }}');
 define('_LANG_DEF','{{ LANG_DEF }}');
-define('_AMP',false);
-define('_CANONICAL_URL',rtrim(mb_strtolower($_SERVER['SCRIPT_URI']),'/'));
-
-$t = $_SERVER['REQUEST_URI'];
-// remove query string
-if(false !== ($pos=mb_strrpos($t,'?'))){
-	$t = mb_substr($t,0,$pos);
-}
-// remove basepath from uri
-if(mb_strpos($t,'{{ APP_BASEURI }}')===0){
-	$t = mb_substr($t,mb_strlen('{{ APP_BASEURI }}'));
-}
-
-if(!empty($_SERVER['REDIRECT_LANG'])){
-	define('_URI',mb_substr($t,3));
-	define('_LANG',$_SERVER['REDIRECT_LANG']);
-}else{
-	define('_URI',$t);
-	define('_LANG','{{ LANG_DEF }}');
-}
 
 #if DEBUG
-if(isset($_SERVER['debug']) && $_SERVER['debug'] === '33967'){
+if(isset($_GET['debug']) && $_GET['debug'] === '33967'){
 	$_SERVER['_GT_BEG'] = microtime(1);
 	$_SERVER['_GM_BEG'] = memory_get_usage();
 	$_SERVER['_DEBUG'] = true;

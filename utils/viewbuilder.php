@@ -150,12 +150,11 @@ class ViewBuilder {
 
 		// parse combined view files buf
 		$t = new ViewParser('',[]);
-		$buf_view .= $t->parse($buf_view);
+		$buf_view = $t->parse($buf_view);
 		$_e=microtime(1);
 
 		unset($buf_layout,$buf_script,$t);
 
-		
 		$buf_view = self::stripSpaces($buf_view);
 		$buf_view = self::stripHtmlSpaces($buf_view);
 
@@ -170,7 +169,7 @@ class ViewBuilder {
 			EOT;
 			$buf .= $t;
 		}
-
+		var_dump($buf_view);exit(1);
 		$buf .= "\n?>\n";
 		$buf .= $buf_view;
 		
