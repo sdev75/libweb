@@ -90,7 +90,9 @@ class CodeControllerMetaCollection {
 		}
 
 		if(!empty($meta->patterns)){
-			$this->data[$id]['patterns'] []= $meta->patterns;
+			$this->data[$id]['patterns'] =
+				array_merge($this->data[$id]['patterns'],  $meta->patterns);
+			//$this->data[$id]['patterns'] []= $meta->patterns;
 		}
 		
 
@@ -324,8 +326,16 @@ class CodeBuilder {
 		return $route;
 	}
 
-	public static function buildRoutesFromControllerMeta(CodeControllerMeta $meta){
-		var_dump(self::$metadata->getMetadata());
+	public static function buildRoutesFromMetadata(){
+		$metadata = self::$metadata->getMetadata();
+		var_dump($metadata);die;
+		foreach($metadata as $id => $data){
+			foreach($data['patterns'] as $pattern){
+				var_dump([$pattern]);die;
+			}
+		}
+
+		exit(1);
 		// $route = self::getRouteFromControllerMeta($meta);
 		// self::$routes[$route->id] = $route->toArray();
 		// foreach($route->patterns as $pattern){
@@ -401,8 +411,6 @@ class CodeBuilder {
 			throw new Exception("Invalid controller meta#2 for '$filename'");
 		}
 
-		//self::buildRoutesFromControllerMeta($c_meta);
-		//self::buildViewsFromAnnotation($ann);
 		self::$metadata->addMetadata($c_meta);
 		
 		$buf = self::stripHashComments($buf);
