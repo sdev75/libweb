@@ -132,10 +132,10 @@ class CodeBuilder {
 	}
 
 	public static function parseAnnotations(string $buf){
-		if(preg_match_all("~# @([a-zA-Z]+)[ \t]*([^\n]+)~",$buf,$matches)){
+		
+		$ann = new CodeAnnotation();
 
-			$routes = [];
-			$ann = new CodeAnnotation();
+		if(preg_match_all("~# @([a-zA-Z]+)[ \t]*([^\n]+)~",$buf,$matches)){
 
 			$len = count($matches[0]);
 			for($i=0;$i<$len;$i++){

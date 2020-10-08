@@ -121,14 +121,15 @@ class ViewBuilder {
 	}
 
 	public static function writeOutputToStdout(
-			string $in_filename, string $out_filename, $time=0){
+			string $in_filename, string $out_filename, float $time=0){
+	
 		if($time){
-			fprintf(STDOUT,"\e[37m \t+ %-80s\t>> %-40s\e[0m\n",
-			$in_filename,$out_filename);
-		}else{
-			fprintf(STDOUT,"\e[37m \t+ %-80s\t>> %-40s (took: %.6fs)\e[0m\n",
+			fprintf(STDOUT,"\e[37m\t+ %-80s\t>> %-40s (took: %.6fs)\e[0m\n",
 			$in_filename,$out_filename,$time);
+			return;
 		}
+		
+		fprintf(STDOUT,"\e[37m\t+ %-80s\t>> %-40s\e[0m\n",$in_filename,$out_filename);
 	}
 
 	public static function build(array $view, string $path_code, string $inpath, string $outpath){
@@ -144,7 +145,7 @@ class ViewBuilder {
 
 		$layout_filename = "{$inpath}/layout/{$view['layout']}.phtml";
 		$script_filename = "{$inpath}/script/{$view['script']}.phtml";
-		$view_filename = "{$layout_filename}/{$script_filename}";
+		$view_filename = "{$view['layout']}:{$view['script']}";
 		$output_filename = "{$outpath}/{$view['controller']}";
 
 		// Check if view exists, otherwise output the buffer as it is
@@ -161,11 +162,12 @@ class ViewBuilder {
 		}
 		if(!$view_exists){
 			self::writeOutputToFile($output_filename, $buf);
+		
 			self::writeOutputToStdout($view_filename, $output_filename);
 			return;
 		}
 
-		$b=microtime(1);
+		$_b=microtime(1);
 		// combine view files to buf
 		$t = new ViewCombiner();
 		$buf_layout = $t->parse($layout_filename, $inpath);
@@ -175,7 +177,7 @@ class ViewBuilder {
 		// parse combined view files buf
 		$t = new ViewParser('',[]);
 		$buf_view .= $t->parse($buf_view);
-		$e=microtime(1);
+		$_e=microtime(1);
 
 		unset($buf_layout,$buf_script,$t);
 
@@ -197,7 +199,7 @@ class ViewBuilder {
 		$buf .= $buf_view;
 		
 		self::writeOutputToFile($output_filename, $buf);
-		self::writeOutputToStdout($view_filename, $output_filename, $e-$b);
+		self::writeOutputToStdout($view_filename, $output_filename, $_e-$_b);
 	}
 
 	public static function patch($buf){
