@@ -6,8 +6,7 @@ include __DIR__.'/../utils/libbuilder.php';
 include __DIR__.'/../utils/codebuilder.php';
 
 define("LIBPATH", __DIR__.'/..');
-define("CWD", getcwd());
-$opt = getopt('',['env:','in:','out:','include-path:']);
+$opt = getopt('',['env:','in:','out:','include-path:', 'lib']);
 
 EnvBuilder::import($opt['env']);
 $env = EnvBuilder::getVars();

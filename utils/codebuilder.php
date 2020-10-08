@@ -188,6 +188,7 @@ class CodeBuilder {
 	public static $views = [];
 	public static $includes = [];
 	public static CodeControllerMetaCollection $metadata;
+	public static $libver = 0;
 
 	public static function setEnvVars(array $env){
 		self::$env = $env;
@@ -413,7 +414,13 @@ class CodeBuilder {
 		$buf = str_replace('<?php','',$buf);
 		$buf = str_replace("\nn","\n",$buf);
 		$date = date('m/d/Y h:i:s a',time());
-		$buf = "<?php\n/* Built with libweb on $date */$buf";
+		if(self::$libver){
+			$version = self::$libver;
+			$buf = "<?php\n/* Built with libweb v$version on $date */$buf";
+		}else{
+			$buf = "<?php\n/* Built with libweb on $date */$buf";
+		}
+		
 		return $buf;
 	}
 
@@ -449,7 +456,7 @@ class CodeBuilder {
 		$buf = self::patchEnvVars($buf);
 		$buf = self::replaceViewAssignments($buf);
 
-		if(preg_match_all('~#include "([^"]+)"~',$buf,$matches)){
+		if(preg_match_all('~@include "([^"]+)"~',$buf,$matches)){
 			$len = count($matches[0]);
 		
 			for($i=0;$i<$len;$i++){

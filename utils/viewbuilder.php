@@ -180,39 +180,4 @@ class ViewBuilder {
 		self::writeOutputToStdout($view_filename, $output_filename, $_e-$_b);
 	}
 
-	public static function patch($buf){
-		$buf = str_replace('<?php','',$buf);
-		$buf = str_replace("\nn","\n",$buf);
-		$date = date('m/d/Y h:i:s a',time());
-		$buf = "<?php\n/* Built with libweb on $date */$buf";
-		return $buf;
-	}
-
-	public static function parseAndPatch(string $buf) {
-		
-		$buf = self::patchEnvVars($buf);
-
-		if(preg_match_all("#@include '([a-zA-Z_.]+)/([^']+)';[ ]*#",$buf,$matches)){
-			$len = count($matches[0]);
-			for($i=0;$i<$len;$i++){
-				$needle = $matches[0][$i];
-				$type = $matches[1][$i];
-				$path = $matches[2][$i];
-
-				$include_path = self::$include_path;
-				$include_filename = "{$include_path}/$type/$path";
-
-				if(!file_exists($include_filename)){
-					throw new Exception("file_exists(): $include_filename ($needle)");
-				}
-
-				$buf = str_replace($needle,file_get_contents($include_filename),$buf);
-				$buf = self::parseAndPatch($buf);
-			}
-		}
-		
-		$buf = self::patchEnvVars($buf);
-		return $buf;
-	}
-
 }

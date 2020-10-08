@@ -1,18 +1,16 @@
 <?php
 
+$opt = getopt('',['env:','in:','out:','include-path:','path-code:']);
+
 define("LIBPATH", __DIR__.'/..');
-define("CWD", getcwd());
 $version = file_get_contents(LIBPATH.'/VERSION');
 
 include __DIR__.'/build-error.php';
 include __DIR__.'/../utils/envbuilder.php';
 include __DIR__.'/../utils/libbuilder.php';
 include __DIR__.'/../utils/viewbuilder.php';
-include CWD."/src/lib/libweb-{$version}/view.php";
-include CWD."/src/lib/libweb-{$version}/view/parser.php";
-include CWD."/src/lib/libweb-{$version}/view/combiner.php";
-
-$opt = getopt('',['env:','in:','out:','include-path:','path-code:']);
+include $opt['include-path']."/lib/libweb-{$version}/view/parser.php";
+include $opt['include-path']."/lib/libweb-{$version}/view/combiner.php";
 
 EnvBuilder::import($opt['env']);
 $env = EnvBuilder::getVars();
