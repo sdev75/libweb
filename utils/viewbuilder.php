@@ -109,42 +109,76 @@ class ViewBuilder {
 		return $buf;
 	}
 
+	public static function writeOutputToFile(string $filename, string $buf){
+		$dirname = pathinfo($filename,PATHINFO_DIRNAME);
+		if(!is_dir($dirname) && !mkdir($dirname,0755,true)){
+			throw new Exception("Cannot create directory: '$dirname'");
+		}
+
+		if(!file_put_contents($filename,$buf)){
+			throw new Exception("Cannot save to '$filename'");
+		}
+	}
+
+	public static function writeOutputToStdout(
+			string $in_filename, string $out_filename, $time=0){
+		if($time){
+			fprintf(STDOUT,"\e[37m \t+ %-80s\t>> %-40s\e[0m\n",
+			$in_filename,$out_filename);
+		}else{
+			fprintf(STDOUT,"\e[37m \t+ %-80s\t>> %-40s (took: %.6fs)\e[0m\n",
+			$in_filename,$out_filename,$time);
+		}
+	}
+
 	public static function build(array $view, string $path_code, string $inpath, string $outpath){
 	
-		$buf = file_get_contents("{$path_code}/{$view['controller']}");
+		$code_filename = "{$path_code}/{$view['controller']}";
+		$buf = file_get_contents($code_filename);
 		if($buf === FALSE){
-			throw new Exception("Failed to open '{$path_code}/{$view['controller']}'");
+			throw new Exception("Failed to open '{$code_filename}");
 		}
 
 		$buf = self::stripHashComments($buf);
 		$buf = self::replaceViewAssignments($buf);
-		//$buf = self::stripLineComments($buf); // bugfix: can break code like '//' 
-		//$buf = self::stripMultilineComments($buf);
-		//$buf = self::stripDoubleLines($buf);
 
 		$layout_filename = "{$inpath}/layout/{$view['layout']}.phtml";
 		$script_filename = "{$inpath}/script/{$view['script']}.phtml";
-	
+		$view_filename = "{$layout_filename}/{$script_filename}";
+		$output_filename = "{$outpath}/{$view['controller']}";
+
+		// Check if view exists, otherwise output the buffer as it is
+		$view_exists = true;
 		if(!file_exists($layout_filename)){
-			fprintf(STDERR,"layout_filename not found: $layout_filename\n");
-			return $buf;
+			fprintf(STDERR,
+			"\e[0;93mWARN: VIEW LAYOUT not found: $layout_filename\e[0m\n");
+			$view_exists = false;
 		}
-		if(!file_exists($script_filename)){
-			fprintf(STDERR,"script_filename not found: $script_filename\n");
-			return $buf;
+		if($view_exists && !file_exists($script_filename)){
+			fprintf(STDERR,
+			"\e[0;93mWARN: VIEW SCRIPT not found: $script_filename\e[0m\n");
+			$view_exists = false;
+		}
+		if(!$view_exists){
+			self::writeOutputToFile($output_filename, $buf);
+			self::writeOutputToStdout($view_filename, $output_filename);
+			return;
 		}
 
+		$b=microtime(1);
+		// combine view files to buf
 		$t = new ViewCombiner();
 		$buf_layout = $t->parse($layout_filename, $inpath);
 		$buf_script = $t->parse($script_filename, $inpath);
 		$buf_view = str_replace("{% include script %}",$buf_script,$buf_layout);
-		unset($buf_layout,$buf_script,$t);
-		
+
+		// parse combined view files buf
 		$t = new ViewParser('',[]);
-		$b=microtime(1);
 		$buf_view .= $t->parse($buf_view);
 		$e=microtime(1);
-	
+
+		unset($buf_layout,$buf_script,$t);
+
 		// TODO: clean up and improve the quality of code (still good though)
 		$includes = self::getIncludesByControllerName($view['controller']);
 		if(self::doesIncludeExist($includes,'lib/libweb/view.php')){
@@ -158,23 +192,12 @@ class ViewBuilder {
 			$buf .= $t;
 		}
 
+
 		$buf .= "\n?>\n";
 		$buf .= $buf_view;
-		$view_filename = "{$layout_filename}/{$script_filename}";
-		$output_filename = "{$outpath}/{$view['controller']}";
-
-
-		$dir = $outpath;
-		if(!is_dir($dir) && !mkdir($dir,0755,true)){
-			throw new Exception("Cannot create directory: '$dir'");
-		}
-
-		if(!file_put_contents($output_filename,$buf)){
-			throw new Exception("Cannot save to '$output_filename'");
-		}
-
-		unset($buf);
-		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s (took: %.6fs)\e[0m\n",$view_filename,$output_filename,$e-$b);
+		
+		self::writeOutputToFile($output_filename, $buf);
+		self::writeOutputToStdout($view_filename, $output_filename, $e-$b);
 	}
 
 	public static function patch($buf){
