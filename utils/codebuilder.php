@@ -320,13 +320,20 @@ class CodeBuilder {
 		// exit(1);
 	}
 
-	public static function buildViewsFromAnnotation(CodeAnnotation $ann){
-		$route = self::getRouteFromAnnotation($ann);
-		self::$views[$route->id] = [
-			'controller' => $route->controller,
-			'layout' => $route->layout,
-			'script' => $route->script,
-		];
+	public static function buildViewsFromMetadata(){
+		$metadata = self::$metadata->getMetadata();
+		
+		foreach($metadata as $id => $data){
+			foreach($data['formats'] as $fmt => $arr){
+				if($arr['has_view']){
+					self::$views[$id] = [
+						'controller' => $arr['path'],
+						'layout' => $arr['layout'],
+						'script' => $arr['script'],
+					];
+				}
+			}
+		}
 	}
 
 	public static function writeRoutesToFile(string $filename){

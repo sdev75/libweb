@@ -59,10 +59,10 @@ code: lib
 	php "$(abs_srcdir)/tools/build-code.php" \
 		--env "$(abs_builddir)/src/.cache/config.env" \
 		--in "$(abs_builddir)/src/code" \
-		--out "$(abs_builddir)/src/.cache/code" \
+		--out "$(abs_builddir)/dist/code" \
 		--include-path "$(abs_builddir)/src"
 
-# entry: code
+# entry: code // 	--out "$(abs_builddir)/src/.cache/code" \
 # 	@\
 # 	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
 # 	php "$(abs_srcdir)/tools/build-src.php" \
@@ -80,7 +80,7 @@ view: code
 		--in "$(abs_builddir)/src/view" \
 		--out "$(abs_builddir)/dist/code" \
 		--include-path "$(abs_builddir)/src" \
-		--path-code "$(abs_builddir)/src/.cache/code"
+		--path-code "$(abs_builddir)/dist/code"
 
 public:
 	cp -ur $(abs_builddir)/src/public $(abs_builddir)/dist/public

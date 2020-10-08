@@ -24,6 +24,7 @@ foreach(CodeBuilder::$files as $filename){
 
 
 CodeBuilder::buildRoutesFromMetadata();
+CodeBuilder::buildViewsFromMetadata();
 exit(1);
 
 CodeBuilder::writeRoutesToFile("{$opt['include-path']}/.cache/data/routes.php");
