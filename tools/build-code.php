@@ -6,7 +6,7 @@ include __DIR__.'/../utils/libbuilder.php';
 include __DIR__.'/../utils/codebuilder.php';
 
 define("LIBPATH", __DIR__.'/..');
-$opt = getopt('',['env:','in:','out:','include-path:', 'lib']);
+$opt = getopt('',['env:','in:','out:','include-path:', 'lib', 'cache-path:']);
 
 EnvBuilder::import($opt['env']);
 $env = EnvBuilder::getVars();
@@ -23,8 +23,8 @@ foreach(CodeBuilder::$files as $filename){
 
 CodeBuilder::buildRoutesFromMetadata();
 CodeBuilder::buildViewsFromMetadata();
-CodeBuilder::writeRoutesToFile("{$opt['include-path']}/.cache/data/routes.php");
-CodeBuilder::writeViewsToFile("{$opt['include-path']}/.cache/data/views.php");
-CodeBuilder::writeIncludesToFile("{$opt['include-path']}/.cache/data/includes.php");
+CodeBuilder::writeRoutesToFile("{$opt['cache-path']}/data/routes.php");
+CodeBuilder::writeViewsToFile("{$opt['cache-path']}/data/views.php");
+CodeBuilder::writeIncludesToFile("{$opt['cache-path']}/data/includes.php");
 
 exit(0);

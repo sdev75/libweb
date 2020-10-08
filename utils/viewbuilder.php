@@ -53,13 +53,11 @@ class ViewBuilder {
 	}
 	public static function stripDoubleLines($buf){
 		$buf = preg_replace('/^\s+/m', '', $buf);
-	
 		return $buf;
 	}
 
 	public static function stripMultilineComments($buf){
 		$buf = preg_replace('!/\*.*?\*/!s', '', $buf);
-		//$buf = preg_replace('/\n\s*\n/', "\n", $buf);
 		return $buf;
 	}
 

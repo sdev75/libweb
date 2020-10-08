@@ -23,15 +23,15 @@ deploy:
 endif
 
 clean:
-	@rm -rf "$(abs_builddir)/src/.cache"
+	@rm -rf "$(abs_builddir)/.cache"
 
 env:
 	@\
 	echo -e "Building $(FBOLD)$@$(CNUL)...";\
-	rm -r "$(abs_builddir)/src/.cache/config.env"; \
-	mkdir -p "$(abs_builddir)/src/.cache"; \
+	rm -r "$(abs_builddir)/.cache/config.env"; \
+	mkdir -p "$(abs_builddir)/.cache"; \
 	in="$(abs_builddir)/src/config.env"; \
-	out="$(abs_builddir)/src/.cache/config.env"; \
+	out="$(abs_builddir)/.cache/config.env"; \
 	ENV_BUF=$(cat $$in | grep -v "=\$$" | grep -v "^DEPLOY_"); \
 	php "$(abs_srcdir)/tools/build-env.php" < $$in > $$out; \
 	echo -e "Env file saved to: $$out";
@@ -44,8 +44,8 @@ lib: env
 	cp -r $(abs_srcdir)/src $(abs_builddir)/src/.cache/lib/libweb-$$version \
 	&& \
 	php "$(abs_srcdir)/tools/build-src.php" \
-		--env "$(abs_builddir)/src/.cache/config.env" \
-		--in "$(abs_builddir)/src/.cache/lib" \
+		--env "$(abs_builddir)/.cache/config.env" \
+		--in "$(abs_builddir)/.cache/lib" \
 		--out "$(abs_builddir)/src/lib" \
 		--include-path "$(abs_builddir)/src" \
 	&& \
@@ -57,25 +57,18 @@ code: lib
 	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
 	rm -r "$(abs_builddir)/dist/code"; \
 	php "$(abs_srcdir)/tools/build-code.php" \
-		--env "$(abs_builddir)/src/.cache/config.env" \
+		--cache-path = "$(abs_builddir)/.cache" \
+		--env "$(abs_builddir)/.cache/config.env" \
 		--in "$(abs_builddir)/src/code" \
 		--out "$(abs_builddir)/dist/code" \
 		--include-path "$(abs_builddir)/src"
-
-# entry: code // 	--out "$(abs_builddir)/src/.cache/code" \
-# 	@\
-# 	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
-# 	php "$(abs_srcdir)/tools/build-src.php" \
-# 		--env "$(abs_builddir)/src/.cache/config.env" \
-# 		--in "$(abs_builddir)/src/entry" \
-# 		--out "$(abs_builddir)/dist/entry" \
-# 		--include-path "$(abs_builddir)/src"
 
 view: code
 	@\
 	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
 	php "$(abs_srcdir)/tools/build-view.php" \
-		--env "$(abs_builddir)/src/.cache/config.env" \
+		--cache-path = "$(abs_builddir)/.cache" \
+		--env "$(abs_builddir)/.cache/config.env" \
 		--in "$(abs_builddir)/src/view" \
 		--out "$(abs_builddir)/dist/code" \
 		--include-path "$(abs_builddir)/src" \

@@ -1,6 +1,6 @@
 <?php
 
-$opt = getopt('',['env:','in:','out:','include-path:','path-code:']);
+$opt = getopt('',['env:','in:','out:','include-path:','path-code:','cache-path:']);
 
 define("LIBPATH", __DIR__.'/..');
 $version = file_get_contents(LIBPATH.'/VERSION');
@@ -18,8 +18,8 @@ LibBuilder::$version = $version;
 
 ViewBuilder::setEnvVars($env);
 ViewBuilder::setIncludePath($opt['include-path']);
-ViewBuilder::loadViewsToParse("{$opt['include-path']}/.cache/data/views.php");
-ViewBuilder::loadCodeIncludes("{$opt['include-path']}/.cache/data/includes.php");
+ViewBuilder::loadViewsToParse("{$opt['cache-path']}/data/views.php");
+ViewBuilder::loadCodeIncludes("{$opt['cache-path']}/data/includes.php");
 
 foreach(ViewBuilder::$views as $view){
 	ViewBuilder::build($view, $opt['path-code'], $opt['in'], $opt['out']);
