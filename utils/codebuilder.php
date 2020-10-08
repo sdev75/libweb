@@ -1,26 +1,8 @@
 <?php
 
-class CodeAnnotation_todo {
-	public string $id;
-	public array $patterns = [];
-	public string $view;
-
-	public function setId(string $id){
-		$this->id = $id;
-	}
-
-	public function addPattern(string $pattern){
-		$this->patterns []= $pattern;
-	}
-
-	public function setView(string $view){
-		$this->view = $view;
-	}
-
-}
-
 class CodeRoute {
 	public string $id;
+	public string $path;
 	public array $patterns = [];
 	public array $methods = [];
 	public array $formats = [];
@@ -30,6 +12,7 @@ class CodeRoute {
 	public function toArray(){
 		return [
 			'id' => $this->id,
+			'path' => $this->path,
 			'patterns' => $this->patterns,
 			// 'langs' => $this->langs,
 			'methods' => $this->methods,
@@ -88,6 +71,10 @@ class CodeControllerMetaCollection {
 		if(!isset($this->array[$id]['patterns'])){
 			$this->data[$id]['patterns'] = [];
 		}
+		
+		if(!isset($this->array[$id]['formats'])){
+			$this->data[$id]['formats'] = [];
+		}
 
 		if(!empty($meta->patterns)){
 			$this->data[$id]['patterns'] =
@@ -96,20 +83,22 @@ class CodeControllerMetaCollection {
 		}
 		
 
-		if(!isset($this->array[$id][$format])){
-			$this->array[$id][$format] = [];
+		if(!isset($this->array[$id]['formats'][$format])){
+			$this->array[$id]['formats'][$format] = [];
 		}
 
-		$this->data[$id][$format] = [
+		$this->data[$id]['formats'][$format] = [
 			'layout' => $meta->layout,
 			'script' => $meta->script,
+			'path' => $meta->path,
+			'has_view' => $meta->has_view,
 		];
 
-		if(!isset($this->data[$id][$format]['methods'])){
-			$this->data[$id][$format]['methods'] = [];
+		if(!isset($this->data[$id]['formats'][$format]['methods'])){
+			$this->data[$id]['formats'][$format]['methods'] = [];
 		}
 
-		$this->data[$id][$format]['methods'] [$meta->method] = 1;
+		$this->data[$id]['formats'][$format]['methods'] [$meta->method] = 1;
 	}
 
 	public function getMetadata(){
@@ -315,33 +304,20 @@ class CodeBuilder {
 		return $res;
 	}
 
-	public static function getRouteFromControllerMeta(CodeControllerMeta $meta) : CodeRoute {
-		$route = new CodeRoute();
-		$route->id = $meta->id;
-		$route->patterns = $meta->patterns;
-		$route->methods = $meta->method;
-
-		$route->layout = $meta->layout;
-		$route->script = $meta->script;
-		return $route;
-	}
-
 	public static function buildRoutesFromMetadata(){
 		$metadata = self::$metadata->getMetadata();
-		var_dump($metadata);die;
 		foreach($metadata as $id => $data){
+			$route_data = [
+				'id' => $id,
+				'formats' => $data['formats'],
+			];
+			self::$routes[$id] = $route_data;
 			foreach($data['patterns'] as $pattern){
-				var_dump([$pattern]);die;
+				self::$routes_rmap[$pattern] = $route_data;
 			}
 		}
-
-		exit(1);
-		// $route = self::getRouteFromControllerMeta($meta);
-		// self::$routes[$route->id] = $route->toArray();
-		// foreach($route->patterns as $pattern){
-		// 	self::$routes_rmap[$pattern] = $route->id;
-		// }
 		// var_dump(self::$routes,self::$routes_rmap);
+		// exit(1);
 	}
 
 	public static function buildViewsFromAnnotation(CodeAnnotation $ann){
