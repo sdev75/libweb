@@ -79,43 +79,39 @@ controller
 				method get post	
 */
 class CodeControllerMetaCollection {
-	public array $array = [];
+	public array $data = [];
 
-	// public function addPattern(string $id, $pattern){
-	// 	if(!isset($this->array[$id]['patterns'])){
-	// 		$this->array[$id]['patterns'] = [];
-	// 	}
-	// 	$this->array[$id]['patterns'] []= $pattern;
-	// }
-
-	public function setMetadata(CodeControllerMeta $meta){
+	public function addMetadata(CodeControllerMeta $meta){
 		$id = $meta->id;
 		$format = $meta->format;
 
 		if(!isset($this->array[$id]['patterns'])){
-			$this->array[$id]['patterns'] = [];
+			$this->data[$id]['patterns'] = [];
 		}
 
-		$this->array[$id][$format]['patterns'] []= $meta->patterns;
+		if(!empty($meta->patterns)){
+			$this->data[$id]['patterns'] []= $meta->patterns;
+		}
+		
 
 		if(!isset($this->array[$id][$format])){
 			$this->array[$id][$format] = [];
 		}
 
-		$this->array[$id][$format] = [
+		$this->data[$id][$format] = [
 			'layout' => $meta->layout,
 			'script' => $meta->script,
 		];
 
-		if(!isset($this->array[$id][$format]['methods'])){
-			$this->array[$id][$format]['methods'] = [];
+		if(!isset($this->data[$id][$format]['methods'])){
+			$this->data[$id][$format]['methods'] = [];
 		}
 
-		$this->array[$id][$format]['methods'] [$meta->method] = 1;
+		$this->data[$id][$format]['methods'] [$meta->method] = 1;
 	}
 
 	public function getMetadata(){
-		return $this->array;
+		return $this->data;
 	}
 }
 
@@ -153,6 +149,10 @@ class CodeControllerMeta {
 	}
 
 	public function addPattern(string $pattern){
+		if($pattern[0]==='/'){
+			$this->patterns []= substr($pattern,1);
+			return;
+		}
 		$this->patterns []= $pattern;
 	}
 
@@ -278,7 +278,6 @@ class CodeBuilder {
 					break;
 				case 'route': 
 					$meta->addPattern($val);
-					//$ann->addPattern($val);
 					break;
 				case 'view': 
 					$arr = explode('/',$val);
@@ -404,7 +403,7 @@ class CodeBuilder {
 
 		//self::buildRoutesFromControllerMeta($c_meta);
 		//self::buildViewsFromAnnotation($ann);
-		self::$metadata->setMetadata($c_meta);
+		self::$metadata->addMetadata($c_meta);
 		
 		$buf = self::stripHashComments($buf);
 		$buf = self::stripDoubleLines($buf);
@@ -414,9 +413,6 @@ class CodeBuilder {
 		if(!is_dir($dir) && !mkdir($dir,0755,true)){
 			throw new Exception("Failed to create directory: '$dir'");
 		}
-
-		var_dump(self::$metadata->getMetadata());
-		exit(1);
 
 		file_put_contents($finalname,$buf);
 		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s\e[0m\n",$filename,$finalname);
