@@ -155,7 +155,38 @@ class CodeControllerMeta {
 	public function addPattern(string $pattern){
 		$this->patterns []= $pattern;
 	}
+
+	// name = page.format-method (from page.json-post.php)
+	public function parse(string $name){
+		$name = "page-post";
+
+		// Overwrite method if exists
+		$t = explode('-', $name);
+		if(count($t) === 2){
+			$this->method = $t[1];
+			$name = $t[0];
+		}
+		
+		// Overwrite format if exists
+		$t = explode('.', $name);
+		if(count($t) === 2){
+			$this->format = $t[1];
+		}
+		
+		$this->path = $filename;
+		$this->valid = true;
+		return $meta;
+	}
+		
+	public function parseFromFilename(string $filename) : string{
+		$name = pathinfo($filename,PATHINFO_FILENAME);
+		$name = "page-post";
+		$this->parse($name);
+		return $name;
+	}
 }
+
+
 
 class CodeBuilder {
 
@@ -357,41 +388,10 @@ class CodeBuilder {
 		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s\e[0m\n","Includes",$filename);
 	}
 
-	public static function getControllerMetadata(string $filename) : CodeControllerMeta{
-		$meta = new CodeControllerMeta();
-		$name = pathinfo($filename,PATHINFO_FILENAME);
-		$t = explode('.', $name);
-		$len = count($t);
-
-		switch($len){
-			case 1: // ID
-				$meta->id = $t[0];
-				$meta->method = "get";
-				$meta->format = "html";
-				$meta->valid = true;
-				break;
-			case 2: // ID.FORMAT
-				$meta->id = $t[0];
-				$meta->method = "get";
-				$meta->format = $t[1];
-				$meta->valid = true;
-				break;
-			case 3: // ID.FORMAT.METHOD
-				$meta->id = $t[0];
-				$meta->method = $t[2];
-				$meta->format = $t[1];
-				$meta->valid = true;
-				break;
-			default:		
-		}
-		
-		$meta->path = $filename;
-		return $meta;
-	}
-
 	public static function build(string $filename, string $inpath, string $outpath){
 		$c_path = self::extractControllerPath($filename, $inpath);
-		$c_meta = self::getControllerMetadata($c_path);
+		$c_meta = new CodeControllerMeta();
+		$c_meta->parseFromFilename($c_path);
 		if(!$c_meta->valid){
 			throw new Exception("Invalid controller meta#1 for '$filename'");
 		}
