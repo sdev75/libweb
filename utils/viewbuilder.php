@@ -77,16 +77,50 @@ class ViewBuilder {
 		return isset(self::$includes[$name]) ? self::$includes[$name] : false;
 	}
 
+	public static function doesIncludeExist(array $includes, string $val){
+		$res = array_search($val, $includes);
+		return $res !== FALSE;
+	}
+
+	public static function replaceViewAssignments(string $buf){
+		preg_match_all("~view::set *\(([^\)]+)\)~",$buf,$matches);
+		$len = count($matches[0]);
+		if($len){
+			for($i=0;$i<$len;$i++){
+				$needle = $matches[0][$i];
+				$val = $matches[1][$i];
+
+				$pair = explode(',',$val);
+				$quote = $pair[0][0];
+				$sub = "\$_view_vars[$quote" . substr($pair[0], 1, -1) . "$quote]";
+
+				// It might be string literals or simply variables
+				if($pair[1][0] == "\'" || $pair[1][0] === "\""){
+					$quote = $pair[1][0];
+					$sub .= "=$quote" . substr($pair[1],1,-1) . "$quote;";
+				}else{
+					$sub .= "={$pair[1]};";
+				}
+				
+				$buf = str_replace($needle, $sub, $buf);
+			}
+		}
+
+		return $buf;
+	}
+
 	public static function build(array $view, string $path_code, string $inpath, string $outpath){
 	
 		$buf = file_get_contents("{$path_code}/{$view['controller']}");
+		if($buf === FALSE){
+			throw new Exception("Failed to open '{$path_code}/{$view['controller']}'");
+		}
+
 		$buf = self::stripHashComments($buf);
+		$buf = self::replaceViewAssignments($buf);
 		//$buf = self::stripLineComments($buf); // bugfix: can break code like '//' 
 		//$buf = self::stripMultilineComments($buf);
 		//$buf = self::stripDoubleLines($buf);
-		if($buf === FALSE){
-			throw new Exception(error_get_last());
-		}
 
 		$layout_filename = "{$inpath}/layout/{$view['layout']}.phtml";
 		$script_filename = "{$inpath}/script/{$view['script']}.phtml";
@@ -100,8 +134,6 @@ class ViewBuilder {
 			return $buf;
 		}
 
-		$buf .= "\n?>\n";
-
 		$t = new ViewCombiner();
 		$buf_layout = $t->parse($layout_filename, $inpath);
 		$buf_script = $t->parse($script_filename, $inpath);
@@ -113,14 +145,20 @@ class ViewBuilder {
 		$buf_view .= $t->parse($buf_view);
 		$e=microtime(1);
 	
-		$includes = self::getIncludesByControllerName($view['controller']);
-
 		// TODO: clean up and improve the quality of code (still good though)
-		if(isset($includes['lib/libweb/view.php'])){
+		$includes = self::getIncludesByControllerName($view['controller']);
+		if(self::doesIncludeExist($includes,'lib/libweb/view.php')){
 			// definitely using the view
-			
+			$t = <<< EOT
+				if(!empty(\$_SESSION['userdata'])){
+					\$_view_vars['_user'] = \$_SESSION['userdata'];
+				}
+				\$_view_vars = view::\$vars;
+			EOT;
+			$buf .= $t;
 		}
 
+		$buf .= "\n?>\n";
 		$buf .= $buf_view;
 		$view_filename = "{$layout_filename}/{$script_filename}";
 		$output_filename = "{$outpath}/{$view['controller']}";
