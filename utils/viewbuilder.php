@@ -82,33 +82,6 @@ class ViewBuilder {
 		return $res !== FALSE;
 	}
 
-	public static function replaceViewAssignments(string $buf){
-		preg_match_all("~view::set *\(([^\)]+)\)~",$buf,$matches);
-		$len = count($matches[0]);
-		if($len){
-			for($i=0;$i<$len;$i++){
-				$needle = $matches[0][$i];
-				$val = $matches[1][$i];
-
-				$pair = explode(',',$val);
-				$quote = $pair[0][0];
-				$sub = "\$_view_vars[$quote" . substr($pair[0], 1, -1) . "$quote]";
-
-				// It might be string literals or simply variables
-				if($pair[1][0] == "\'" || $pair[1][0] === "\""){
-					$quote = $pair[1][0];
-					$sub .= "=$quote" . substr($pair[1],1,-1) . "$quote;";
-				}else{
-					$sub .= "={$pair[1]};";
-				}
-				
-				$buf = str_replace($needle, $sub, $buf);
-			}
-		}
-
-		return $buf;
-	}
-
 	public static function writeOutputToFile(string $filename, string $buf){
 		$dirname = pathinfo($filename,PATHINFO_DIRNAME);
 		if(!is_dir($dirname) && !mkdir($dirname,0755,true)){
@@ -141,7 +114,7 @@ class ViewBuilder {
 		}
 
 		$buf = self::stripHashComments($buf);
-		$buf = self::replaceViewAssignments($buf);
+		//$buf = self::replaceViewAssignments($buf);
 
 		$layout_filename = "{$inpath}/layout/{$view['layout']}.phtml";
 		$script_filename = "{$inpath}/script/{$view['script']}.phtml";
