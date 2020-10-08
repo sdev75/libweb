@@ -1,6 +1,6 @@
 <?php
 
-class CodeAnnotation {
+class CodeAnnotation_todo {
 	public string $id;
 	public array $patterns = [];
 	public string $view;
@@ -17,31 +17,13 @@ class CodeAnnotation {
 		$this->view = $view;
 	}
 
-	// public function addLang($code){
-	// 	$code = strtolower($code);
-	// 	$this->langs[$code] = $code;
-	// }
-
-	// public function addMethod($method){
-	// 	$method = strtolower($method);
-	// 	$this->methods[$method] = $method;
-	// }
-
-	// public function addFormat($format){
-	// 	$format = strtolower($format);
-	// 	$this->formats[$format] = $format;
-	// }
-
 }
 
 class CodeRoute {
 	public string $id;
 	public array $patterns = [];
-	// public array $langs = [];
-	// public array $methods = [];
-	// public array $formats = [];
-	// public array $flags = [];
-	public string $controller;
+	public array $methods = [];
+	public array $formats = [];
 	public string $layout;
 	public string $script;
 
@@ -49,11 +31,11 @@ class CodeRoute {
 		return [
 			'id' => $this->id,
 			'patterns' => $this->patterns,
-			'langs' => $this->langs,
-			// 'methods' => $this->methods,
-			// 'formats' => $this->formats,
+			// 'langs' => $this->langs,
+			'methods' => $this->methods,
+			'formats' => $this->formats,
 			// 'flags' => $this->flags,
-			'controller' => $this->controller,
+			// 'controller' => $this->controller,
 			'layout' => $this->layout,
 			'script' => $this->script,
 		];
@@ -99,30 +81,41 @@ controller
 class CodeControllerMetaCollection {
 	public array $array = [];
 
-	public function addPattern(string $id, $pattern){
+	// public function addPattern(string $id, $pattern){
+	// 	if(!isset($this->array[$id]['patterns'])){
+	// 		$this->array[$id]['patterns'] = [];
+	// 	}
+	// 	$this->array[$id]['patterns'] []= $pattern;
+	// }
+
+	public function setMetadata(CodeControllerMeta $meta){
+		$id = $meta->id;
+		$format = $meta->format;
+
 		if(!isset($this->array[$id]['patterns'])){
 			$this->array[$id]['patterns'] = [];
 		}
-		$this->array[$id]['patterns'] []= $pattern;
-	}
 
-	public function setMetadata(string $id, CodeControllerMeta $data){
-		$format = $data->format;
+		$this->array[$id][$format]['patterns'] []= $meta->patterns;
 
 		if(!isset($this->array[$id][$format])){
 			$this->array[$id][$format] = [];
 		}
 
 		$this->array[$id][$format] = [
-			'layout' => $data->layout,
-			'view' => $data->view,
+			'layout' => $meta->layout,
+			'script' => $meta->script,
 		];
 
 		if(!isset($this->array[$id][$format]['methods'])){
 			$this->array[$id][$format]['methods'] = [];
 		}
 
-		$this->array[$id][$format]['methods'] [$data->method] = 1;
+		$this->array[$id][$format]['methods'] [$meta->method] = 1;
+	}
+
+	public function getMetadata(){
+		return $this->array;
 	}
 }
 
@@ -132,6 +125,7 @@ class CodeControllerMeta {
 	public string $method = 'get';
 	public string $layout = 'html';
 	public string $script = '';
+	public array $patterns = [];
 	public bool $valid = false;
 	public bool $has_view = false;
 
@@ -143,7 +137,7 @@ class CodeControllerMeta {
 		$this->method = strtolower($method);
 	}
 
-	public function setView(string $script, string $layout=null){	
+	public function setView(string $script, string $layout){	
 		if(empty($script)){
 			$this->script = '';
 			$this->has_view = false;
@@ -151,9 +145,15 @@ class CodeControllerMeta {
 			return;
 		}
 
-		$layout = $layout ?? $this->$layout;
+		if(empty($layout)){
+			$layout = $this->layout;
+		}
 		$this->script = $script;
 		$this->has_view = true;
+	}
+
+	public function addPattern(string $pattern){
+		$this->patterns []= $pattern;
 	}
 }
 
@@ -228,9 +228,11 @@ class CodeBuilder {
 		return $buf;
 	}
 
-	public static function parseAnnotations(string $buf, CodeControllerMeta $meta) : CodeControllerMeta{
+	public static function getMetadataFromAnnotations(string $buf, CodeControllerMeta $metadata) : CodeControllerMeta{
 
 		//$ann = new CodeAnnotation();
+
+		$meta = clone $metadata;
 
 		preg_match_all("~# @([a-zA-Z]+)[ \t]*([^\n]+)~",$buf,$matches);
 
@@ -256,7 +258,7 @@ class CodeBuilder {
 					}
 					$layout = array_shift($arr);
 					$script = implode('/',$arr);
-					$meta->setView($val);
+					$meta->setView($script,$layout);
 					break;
 				default:
 					break;
@@ -264,15 +266,14 @@ class CodeBuilder {
 		}
 
 		// If no ID, use ID passed in params
-		if(!isset($ann->id)){
-			$ann->setId($meta->id);
-		}
+		// if(!isset($ann->id)){
+		// 	$ann->setId($meta->id);
+		// }
 
-		if(!isset($ann->view)){
-			$ann->setView($meta->view);
-		}
-
-		return $ann;
+		// if(!isset($ann->view)){
+		// 	$ann->setView($meta->view);
+		// }
+		return $meta;
 	}
 
 	public static function printExport($val){
@@ -284,25 +285,25 @@ class CodeBuilder {
 		return $res;
 	}
 
-	public static function getRouteFromAnnotation(CodeAnnotation $ann) : CodeRoute {
+	public static function getRouteFromControllerMeta(CodeControllerMeta $meta) : CodeRoute {
 		$route = new CodeRoute();
-		$route->id = $ann->id;
-		$route->patterns = $ann->patterns;
+		$route->id = $meta->id;
+		$route->patterns = $meta->patterns;
+		$route->methods = $meta->method;
 
-		$view = explode("/",$ann->view);
-		$layout = array_shift($view);
-		$route->layout = $layout;
-		$route->script = implode('/',$view);
+		$route->layout = $meta->layout;
+		$route->script = $meta->script;
 		return $route;
 	}
 
-	// todo detect post & json as well as other flags
-	public static function buildRoutesFromAnnotation(CodeAnnotation $ann){
-		$route = self::getRouteFromAnnotation($ann);
-		self::$routes[$route->id] = $route->toArray();
-		foreach($route->patterns as $pattern){
-			self::$routes_rmap[$pattern] = $route->id;
-		}
+	public static function buildRoutesFromControllerMeta(CodeControllerMeta $meta){
+		var_dump(self::$metadata->getMetadata());
+		// $route = self::getRouteFromControllerMeta($meta);
+		// self::$routes[$route->id] = $route->toArray();
+		// foreach($route->patterns as $pattern){
+		// 	self::$routes_rmap[$pattern] = $route->id;
+		// }
+		// var_dump(self::$routes,self::$routes_rmap);
 	}
 
 	public static function buildViewsFromAnnotation(CodeAnnotation $ann){
@@ -392,25 +393,21 @@ class CodeBuilder {
 		$c_path = self::extractControllerPath($filename, $inpath);
 		$c_meta = self::getControllerMetadata($c_path);
 		if(!$c_meta->valid){
-			throw new Exception("Invalid controller meta for '$filename'");
+			throw new Exception("Invalid controller meta#1 for '$filename'");
 		}
 
 		$buf = file_get_contents($filename);
 		$buf = self::parseAndPatch($buf,$c_meta->path);
-		$ann = self::parseAnnotations($buf, $c_meta);
-		var_dump($ann);exit(1);
 
-		if(!isset($ann->id)){
-			throw new Exception("Missing annotation attribute: id for '$controller'");
+		$c_meta = self::getMetadataFromAnnotations($buf, $c_meta);
+		if(!$c_meta->valid){
+			throw new Exception("Invalid controller meta#2 for '$filename'");
 		}
 
-		
-		$ann->controller = $controller;
-		
-		self::buildRoutesFromAnnotation($ann);
-		self::buildViewsFromAnnotation($ann);
-
-		var_dump(self::$routes_rmap);exit(1);
+		//self::buildRoutesFromControllerMeta($c_meta);
+		//self::buildViewsFromAnnotation($ann);
+var_dump($c_meta);exit(1);
+		self::$metadata->setMetadata($c_meta);
 		
 		$buf = self::stripHashComments($buf);
 		$buf = self::stripDoubleLines($buf);
@@ -420,6 +417,9 @@ class CodeBuilder {
 		if(!is_dir($dir) && !mkdir($dir,0755,true)){
 			throw new Exception("Failed to create directory: '$dir'");
 		}
+
+		var_dump(self::$metadata->getMetadata());
+		exit(1);
 
 		file_put_contents($finalname,$buf);
 		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s\e[0m\n",$filename,$finalname);
