@@ -8,6 +8,9 @@ class EnvBuilder {
 		foreach($lines as $line){
 			$pair = explode("=", $line);
 			if(count($pair) < 2){
+				if(empty($line)){
+					continue;
+				}
 				fprintf(STDERR, "\e[0;93m Skipped $line\e[0m\n");
 				continue;
 			}
