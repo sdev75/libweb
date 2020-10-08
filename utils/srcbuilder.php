@@ -5,6 +5,8 @@ class SrcBuilder {
 	public static $env = [];
 	public static $files = [];
 	public static $include_path = "";
+	public static $debug = false;
+	public static $pp = null;
 
 	public static function setEnvVars(array $env){
 		self::$env = $env;
@@ -84,6 +86,10 @@ class SrcBuilder {
 	public static function parseAndPatch(string $buf) {
 		
 		$buf = self::patchEnvVars($buf);
+
+		if(self::$pp){
+			$buf = self::$pp->parseIfElseCond($buf);
+		}
 
 		if(preg_match_all("#=? ?@include '([a-zA-Z_.:]+)/([^']+)';[ ]*#",$buf,$matches)){
 			$len = count($matches[0]);

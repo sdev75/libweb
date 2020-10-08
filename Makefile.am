@@ -8,9 +8,9 @@ FBOLD=\x1b[1m
 FNORM=\x1b[21m
 
 if DEBUG
-DFLAGS="--debug 1"
+DFLAGS=--debug 1
 else
-DFLAGS=""
+DFLAGS=--debug 0
 endif
 
 init: env

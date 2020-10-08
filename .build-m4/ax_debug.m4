@@ -10,7 +10,7 @@ AS_HELP_STRING([--enable-debug],
 esac],
 [debug=false])
 AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
-#AC_SUBST([DEBUG])
+AC_SUBST([DEBUG])
 
 if test "x$debug" = xtrue; then
 AC_DEFINE([DEBUG], [1], [Debug configuration --enable-debug])
