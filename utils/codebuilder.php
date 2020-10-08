@@ -157,9 +157,7 @@ class CodeControllerMeta {
 	}
 
 	// name = page.format-method (from page.json-post.php)
-	public function parse(string $name){
-		$name = "page-post";
-
+	public function parse(string $filename, string $name){
 		// Overwrite method if exists
 		$t = explode('-', $name);
 		if(count($t) === 2){
@@ -171,17 +169,17 @@ class CodeControllerMeta {
 		$t = explode('.', $name);
 		if(count($t) === 2){
 			$this->format = $t[1];
+			$name = $t[0];
 		}
 		
+		$this->id = $name;
 		$this->path = $filename;
 		$this->valid = true;
-		return $meta;
 	}
 		
 	public function parseFromFilename(string $filename) : string{
 		$name = pathinfo($filename,PATHINFO_FILENAME);
-		$name = "page-post";
-		$this->parse($name);
+		$this->parse($filename, $name);
 		return $name;
 	}
 }
@@ -406,7 +404,6 @@ class CodeBuilder {
 
 		//self::buildRoutesFromControllerMeta($c_meta);
 		//self::buildViewsFromAnnotation($ann);
-var_dump($c_meta);exit(1);
 		self::$metadata->setMetadata($c_meta);
 		
 		$buf = self::stripHashComments($buf);
@@ -460,7 +457,7 @@ var_dump($c_meta);exit(1);
 			}
 
 			// support recursive parsing and patching
-			$buf = self::parseAndPatch($buf, $controller);
+			$buf = self::parseAndPatch($buf, $controller_path);
 		}
 
 		$buf = self::patchEnvVars($buf);
