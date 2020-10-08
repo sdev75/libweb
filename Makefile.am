@@ -7,6 +7,12 @@ CDEBUG=\x1b[90;21m
 FBOLD=\x1b[1m
 FNORM=\x1b[21m
 
+if DEBUG
+DFLAGS="--debug 1"
+else
+DFLAGS=""
+endif
+
 init: env
 	echo -e ""
 
@@ -48,6 +54,7 @@ lib: env
 		--in "$(abs_builddir)/.cache/lib" \
 		--out "$(abs_builddir)/src/lib" \
 		--include-path "$(abs_builddir)/src" \
+		$(DFLAGS) \
 	&& \
 	rm -r $(abs_builddir)/src/lib/libweb; \
 	cp -r $(abs_builddir)/src/lib/libweb-$$version $(abs_builddir)/src/lib/libweb
