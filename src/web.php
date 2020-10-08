@@ -42,6 +42,8 @@ define('_BASEURI','{{ APP_BASEURI }}');
 define('_LANG_DEF','{{ LANG_DEF }}');
 
 $_view_vars = [];
+$_view_vars['_base_url'] = _BASEURL;
+$_view_vars['_base_uri'] = '/'.ltrim(_BASEURI,'/');
 
 #if DEBUG
 if(isset($_GET['debug']) && $_GET['debug'] === '33967'){

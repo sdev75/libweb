@@ -430,7 +430,7 @@ class CodeBuilder {
 	}
 
 	public static function replaceViewAssignments(string $buf){
-		preg_match_all("~view::set *\(([^\)]+)\)~",$buf,$matches);
+		preg_match_all("~view::set *\(([^\)]+)\);~",$buf,$matches);
 		$len = count($matches[0]);
 		if($len){
 			for($i=0;$i<$len;$i++){
