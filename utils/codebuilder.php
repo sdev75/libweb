@@ -3,45 +3,44 @@
 class CodeAnnotation {
 	public string $id;
 	public array $patterns = [];
-	public array $methods = [];
-	public array $langs = [];
-	public array $formats = [];
-	public array $flags = [];
 	public string $view;
-	public string $controller;
 
-	public function addPatterns($pattern){
+	public function setId(string $id){
+		$this->id = $id;
+	}
+
+	public function addPattern(string $pattern){
 		$this->patterns []= $pattern;
 	}
 
-	public function addLang($code){
-		$code = strtolower($code);
-		$this->langs[$code] = $code;
+	public function setView(string $view){
+		$this->view = $view;
 	}
 
-	public function addMethod($method){
-		$method = strtolower($method);
-		$this->methods[$method] = $method;
-	}
+	// public function addLang($code){
+	// 	$code = strtolower($code);
+	// 	$this->langs[$code] = $code;
+	// }
 
-	public function addFormat($format){
-		$format = strtolower($format);
-		$this->formats[$format] = $format;
-	}
+	// public function addMethod($method){
+	// 	$method = strtolower($method);
+	// 	$this->methods[$method] = $method;
+	// }
 
-	public function addFlag($flag){
-		$flag = strtolower($flag);
-		$this->flags[$flag] = $flag;
-	}
+	// public function addFormat($format){
+	// 	$format = strtolower($format);
+	// 	$this->formats[$format] = $format;
+	// }
+
 }
 
 class CodeRoute {
 	public string $id;
 	public array $patterns = [];
-	public array $langs = [];
-	public array $methods = [];
-	public array $formats = [];
-	public array $flags = [];
+	// public array $langs = [];
+	// public array $methods = [];
+	// public array $formats = [];
+	// public array $flags = [];
 	public string $controller;
 	public string $layout;
 	public string $script;
@@ -51,13 +50,110 @@ class CodeRoute {
 			'id' => $this->id,
 			'patterns' => $this->patterns,
 			'langs' => $this->langs,
-			'methods' => $this->methods,
-			'formats' => $this->formats,
-			'flags' => $this->flags,
+			// 'methods' => $this->methods,
+			// 'formats' => $this->formats,
+			// 'flags' => $this->flags,
 			'controller' => $this->controller,
 			'layout' => $this->layout,
 			'script' => $this->script,
 		];
+	}
+}
+
+/*
+controller
+	page
+		patterns
+			/client/[a-z]
+			/clientx/[a-z]
+		data
+			amp
+				layout = amp
+				script = client/amp/client.phtml
+				method = get [default]
+			html [default]
+				layout = html
+				script = client/client.phtml
+				method = get post
+			json
+				layout = null [default]
+				method get post
+
+	page2
+		patterns
+			/client2/[a-z]
+			/client2x/[a-z]
+		data
+			amp
+				layout = amp
+				script = client/amp/client.phtml
+				method = get [default]
+			html [default]
+				layout = html
+				script = client/client.phtml
+				method = get post
+			json
+				layout = null [default]
+				method get post	
+*/
+class CodeControllerMetaCollection {
+	public array $array = [];
+
+	public function addPattern(string $id, $pattern){
+		if(!isset($this->array[$id]['patterns'])){
+			$this->array[$id]['patterns'] = [];
+		}
+		$this->array[$id]['patterns'] []= $pattern;
+	}
+
+	public function setMetadata(string $id, CodeControllerMeta $data){
+		$format = $data->format;
+
+		if(!isset($this->array[$id][$format])){
+			$this->array[$id][$format] = [];
+		}
+
+		$this->array[$id][$format] = [
+			'layout' => $data->layout,
+			'view' => $data->view,
+		];
+
+		if(!isset($this->array[$id][$format]['methods'])){
+			$this->array[$id][$format]['methods'] = [];
+		}
+
+		$this->array[$id][$format]['methods'] [$data->method] = 1;
+	}
+}
+
+class CodeControllerMeta {
+	public string $path;
+	public string $format = 'html';
+	public string $method = 'get';
+	public string $layout = 'html';
+	public string $script = '';
+	public bool $valid = false;
+	public bool $has_view = false;
+
+	public function setFormat(string $format){
+		$this->format = strtolower($format);
+	}
+
+	public function setMethod(string $method){
+		$this->method = strtolower($method);
+	}
+
+	public function setView(string $script, string $layout=null){	
+		if(empty($script)){
+			$this->script = '';
+			$this->has_view = false;
+			$layout = '';
+			return;
+		}
+
+		$layout = $layout ?? $this->$layout;
+		$this->script = $script;
+		$this->has_view = true;
 	}
 }
 
@@ -71,6 +167,7 @@ class CodeBuilder {
 	public static $routes_rmap = [];
 	public static $views = [];
 	public static $includes = [];
+	public static CodeControllerMetaCollection $metadata;
 
 	public static function setEnvVars(array $env){
 		self::$env = $env;
@@ -131,52 +228,48 @@ class CodeBuilder {
 		return $buf;
 	}
 
-	public static function parseAnnotations(string $buf){
+	public static function parseAnnotations(string $buf, CodeControllerMeta $meta) : CodeControllerMeta{
+
+		//$ann = new CodeAnnotation();
+
+		preg_match_all("~# @([a-zA-Z]+)[ \t]*([^\n]+)~",$buf,$matches);
+
+		$len = count($matches[0]);
+		for($i=0;$i<$len;$i++){
+			$needle = $matches[0][$i];
+			$key = $matches[1][$i];
+			$val = $matches[2][$i];
 		
-		$ann = new CodeAnnotation();
-
-		if(preg_match_all("~# @([a-zA-Z]+)[ \t]*([^\n]+)~",$buf,$matches)){
-
-			$len = count($matches[0]);
-			for($i=0;$i<$len;$i++){
-				$needle = $matches[0][$i];
-				$key = $matches[1][$i];
-				$val = $matches[2][$i];
-			
-				switch($key){
-					case 'id': 
-						$ann->id = $val;
-						break;
-					case 'route': 
-						$ann->addPatterns($val);
-						break;
-					case 'lang': 
-						$arr = explode(' ', $val);
-						foreach($arr as $v){
-							$ann->addLang($v);
-						}
-						$ann->addLang($v);
-						break;
-					case 'method': 
-						$arr = explode(' ', $val);
-						foreach($arr as $v){
-							$ann->addMethod($v);
-						}
-						break;
-					case 'format': 
-						$arr = explode(' ', $val);
-						foreach($arr as $v){
-							$ann->addFormat($v);
-						}
-						break;
-					case 'view': 
-						$ann->view = $val;
-						break;
-					default:
-						break;
-				}
+			switch($key){
+				case 'id':
+					$meta->id = $val;
+					//$ann->setId($val);
+					break;
+				case 'route': 
+					$meta->addPattern($val);
+					//$ann->addPattern($val);
+					break;
+				case 'view': 
+					$arr = explode('/',$val);
+					if(!count($arr) > 2){
+						throw new Exception("Invalid view value: '$val'");
+					}
+					$layout = array_shift($arr);
+					$script = implode('/',$arr);
+					$meta->setView($val);
+					break;
+				default:
+					break;
 			}
-			
+		}
+
+		// If no ID, use ID passed in params
+		if(!isset($ann->id)){
+			$ann->setId($meta->id);
+		}
+
+		if(!isset($ann->view)){
+			$ann->setView($meta->view);
 		}
 
 		return $ann;
@@ -195,10 +288,6 @@ class CodeBuilder {
 		$route = new CodeRoute();
 		$route->id = $ann->id;
 		$route->patterns = $ann->patterns;
-		$route->methods = $ann->methods;
-		$route->langs = $ann->langs;
-		$route->flags = $ann->flags;
-		$route->controller = $ann->controller;
 
 		$view = explode("/",$ann->view);
 		$layout = array_shift($view);
@@ -267,16 +356,61 @@ class CodeBuilder {
 		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s\e[0m\n","Includes",$filename);
 	}
 
+	public static function getControllerMetadata(string $filename) : CodeControllerMeta{
+		$meta = new CodeControllerMeta();
+		$name = pathinfo($filename,PATHINFO_FILENAME);
+		$t = explode('.', $name);
+		$len = count($t);
+
+		switch($len){
+			case 1: // ID
+				$meta->id = $t[0];
+				$meta->method = "get";
+				$meta->format = "html";
+				$meta->valid = true;
+				break;
+			case 2: // ID.FORMAT
+				$meta->id = $t[0];
+				$meta->method = "get";
+				$meta->format = $t[1];
+				$meta->valid = true;
+				break;
+			case 3: // ID.FORMAT.METHOD
+				$meta->id = $t[0];
+				$meta->method = $t[2];
+				$meta->format = $t[1];
+				$meta->valid = true;
+				break;
+			default:		
+		}
+		
+		$meta->path = $filename;
+		return $meta;
+	}
+
 	public static function build(string $filename, string $inpath, string $outpath){
-		$controller = self::extractControllerPath($filename, $inpath);
+		$c_path = self::extractControllerPath($filename, $inpath);
+		$c_meta = self::getControllerMetadata($c_path);
+		if(!$c_meta->valid){
+			throw new Exception("Invalid controller meta for '$filename'");
+		}
 
 		$buf = file_get_contents($filename);
-		$buf = self::parseAndPatch($buf,$controller);
-		$ann = self::parseAnnotations($buf);
+		$buf = self::parseAndPatch($buf,$c_meta->path);
+		$ann = self::parseAnnotations($buf, $c_meta);
+		var_dump($ann);exit(1);
+
+		if(!isset($ann->id)){
+			throw new Exception("Missing annotation attribute: id for '$controller'");
+		}
+
+		
 		$ann->controller = $controller;
 		
 		self::buildRoutesFromAnnotation($ann);
 		self::buildViewsFromAnnotation($ann);
+
+		var_dump(self::$routes_rmap);exit(1);
 		
 		$buf = self::stripHashComments($buf);
 		$buf = self::stripDoubleLines($buf);
@@ -299,7 +433,7 @@ class CodeBuilder {
 		return $buf;
 	}
 
-	public static function parseAndPatch(string $buf, $controller) {
+	public static function parseAndPatch(string $buf, string $controller_path) {
 		
 		$buf = self::patchEnvVars($buf);
 
@@ -319,7 +453,7 @@ class CodeBuilder {
 					throw new Exception("file_exists(): $include_filename ($needle)");
 				}
 				
-				self::$includes[$controller] []= "$type/$path";
+				self::$includes[$controller_path] []= "$type/$path";
 			
 				$buf_include = file_get_contents($include_filename);
 				$buf = str_replace($needle,$buf_include,$buf);

@@ -16,6 +16,7 @@ LibBuilder::$version = file_get_contents(LIBPATH.'/VERSION');
 CodeBuilder::setEnvVars($env);
 CodeBuilder::setIncludePath($opt['include-path']);
 CodeBuilder::collectFiles($opt['in']);
+CodeBuilder::$metadata = new CodeControllerMetaCollection();
 
 foreach(CodeBuilder::$files as $filename){
 	CodeBuilder::build($filename, $opt['in'],$opt['out']);
