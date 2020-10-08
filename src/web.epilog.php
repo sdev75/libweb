@@ -7,9 +7,10 @@ if(isset($_SERVER['_DEBUG'])){
 	$_SERVER['_GT'] = $_SERVER['_GT_END']-$_SERVER['_GT_BEG'];
 	$_SERVER['_GM'] = $_SERVER['_GM_END']-$_SERVER['_GM_BEG'];
 
-	$fmt = "%s - logic: %.8fs [%d kb]";
+	$fmt = "%s (%s) - logic: %.8fs [%d kb]";
 	$msg = sprintf($fmt, 
-	_BASEURI,
+	$_SERVER['REQUEST_URI'],
+	$_SERVER['SCRIPT_NAME'],
 	$_SERVER['_GT'],
 	$_SERVER['_GM'],
 	);

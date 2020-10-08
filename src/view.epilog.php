@@ -7,9 +7,10 @@ if(isset($_SERVER['_DEBUG'])){
 	$_SERVER['_VT'] = $_SERVER['_VT_END']-$_SERVER['_VT_BEG'];
 	$_SERVER['_VM'] = $_SERVER['_VM_END']-$_SERVER['_VM_BEG'];
 
-	$fmt = "%s - view: %.8fs [%d kb]";
+	$fmt = "%s (%s) - view: %.8fs [%d kb]";
 	$msg = sprintf($fmt, 
-	_BASEURI,
+	$_SERVER['REQUEST_URI'],
+	$_SERVER['SCRIPT_NAME'],
 	$_SERVER['_VT'],
 	$_SERVER['_VM'],
 	);
