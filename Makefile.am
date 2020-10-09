@@ -29,7 +29,10 @@ deploy:
 endif
 
 clean:
-	@rm -rf "$(abs_builddir)/.cache"
+	rm -rf "$(abs_builddir)/.cache"
+
+clean-dist:
+	rm -r "$(abs_builddir)/dist" && mkdir "$(abs_builddir)/dist"
 
 env:
 	@\

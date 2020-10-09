@@ -9,10 +9,10 @@ if(isset($_SERVER['_DEBUG'])){
 
 	$fmt = "%s (%s) - logic: %.8fs [%d kb]";
 	$msg = sprintf($fmt, 
-	$_SERVER['REQUEST_URI'],
-	$_SERVER['SCRIPT_NAME'],
-	$_SERVER['_GT'],
-	$_SERVER['_GM'],
+		$_SERVER['REQUEST_URI'],
+		$_SERVER['SCRIPT_NAME'],
+		$_SERVER['_GT'],
+		$_SERVER['_GM'],
 	);
 
 	error_log($msg,E_USER_NOTICE);

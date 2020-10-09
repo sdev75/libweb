@@ -1,101 +1,5 @@
 <?php
 
-function _error_handler($error_level, $error_message, $error_file, $error_line,$error_context){
-	$request_id = isset($_SERVER['_REQ_ID'])?$_SERVER['_REQ_ID']:'0';
-	$ip = $_SERVER['REMOTE_ADDR'];
-	$str = "$request_id > $ip - ";
-	$str .= "[JSON SERVICE] $error_message - [$error_line] $error_file -  $error_level";
-	error_log($str);
-}
-
-function _shutdown_handler(){
-
-	$err = error_get_last();
-	if (!isset($err)){
-		return;
-	}
-
-	$error_types = array(
-		E_USER_ERROR      => 'USER ERROR',
-		E_ERROR           => 'ERROR',
-		E_PARSE           => 'PARSE',
-		E_CORE_ERROR      => 'CORE_ERROR',
-		E_CORE_WARNING    => 'CORE_WARNING',
-		E_COMPILE_ERROR   => 'COMPILE_ERROR',
-		E_COMPILE_WARNING => 'COMPILE_WARNING',
-		E_RECOVERABLE_ERROR => 'RECOVERABLE_ERROR',
-	);
-
-	if(!isset($error_types[$err['type']])){
-		return;
-	}
-	
-	$type = $error_types[$err['type']];
-	$str = "[SHUTDOWN] [JSON SERVICE] {$_SERVER['REMOTE_ADDR']} - {$type} - {$err['file']} - {$err['line']} - {$err['message']}";
-	error_log($str);
-	
-	if($err['type'] === E_COMPILE_ERROR || $err['type'] === E_PARSE){
-		$line = dechex($err['line']);
-		json::error("CRITICAL_ERROR","An unrecoverable error has occurred. Error code 0x{$line}");
-		json::send(500);
-		exit;
-	}
-	
-	json::error("INTERNAL_ERROR");
-	json::send(500);
-	exit;
-}
-
-function _exception_handler($e){
-	if($e->getCode() == 42000){
-		error_log(db::$query);
-	}
-	trigger_error($e->getMessage(),E_USER_ERROR);
-	json::error("INTERNAL_SERVICE_ERROR");
-	json::send(500);
-	exit;
-}
-
-set_error_handler('_error_handler');
-set_exception_handler('_exception_handler');
-register_shutdown_function('_shutdown_handler');
-
-mb_internal_encoding('UTF-8');
-date_default_timezone_set('{{ TIMEZONE_DEF }}');
-set_include_path('{{ INCLUDE_PATH }}');
-
-define('_BASEURL',$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'{{ APP_BASEURI }}');
-define('_BASEURI','{{ APP_BASEURI }}');
-define('_PATH',!empty($_SERVER['REDIRECT_C'])?$_SERVER['REDIRECT_C'].'.json':'{{ PATH_DEF }}.json');
-define('_LANG_DEF','{{ LANG_DEF }}');
-
-define('_TIME_B',microtime(1));
-define('_MEM_B',memory_get_usage());
-define('_REQ_ID',str_pad(rand(1,1000000).time(),10,'0',STR_PAD_RIGHT));
-define('_REQ_TS',time());
-
-define('_AMP',false);
-
-$uri = $_SERVER['REQUEST_URI'];
-
-// remove query string
-if(false !== ($pos=mb_strrpos($uri,'?'))){
-	$uri = mb_substr($uri,0,$pos);
-}
-
-// remove basepath from uri
-if(mb_strpos($uri,'{{ APP_BASEURI }}')===0){
-	$uri = mb_substr($uri,mb_strlen('{{ APP_BASEURI }}'));
-}
-
-if(!empty($_SERVER['REDIRECT_LANG'])){
-	define('_URI',mb_substr($uri,3));
-	define('_LANG',$_SERVER['REDIRECT_LANG']);
-}else{
-	define('_URI',$uri);
-	define('_LANG','{{ LANG_DEF }}');
-}
-
 class json {
 	
 	public static $error = false;
@@ -120,7 +24,7 @@ class json {
 
 		self::$error = true;
 		self::$error_code = $code;
-		self::$error_msg = 'An error has occurred.';
+		self::$error_msg = 'An error has occurred';
 		self::$error_desc = $desc;
 	}
 
@@ -173,3 +77,70 @@ class json {
 	}
 
 }
+
+function _shut(){
+	$e = error_get_last();
+	if($e === NULL)
+		return;
+
+	$fmt = "[shut] File: {$e['file']} @ {$e['line']} Type: {$e['type']} IP: {$_SERVER['REMOTE_ADDR']}";
+	error_log($fmt);
+
+	if($e['type'] === E_COMPILE_ERROR ||
+		$e['type'] === E_PARSE || 
+		$e['type'] === E_USER_ERROR){
+		if(ob_get_level())
+			ob_clean();
+		$line = dechex($err['line']);
+		json::error("CRITICAL_ERROR","An unrecoverable error has occurred. Error code 0x{$line}");
+		json::send(500);
+		exit(1);
+	}
+
+	json::error("INTERNAL_ERROR");
+	json::send(500);
+	exit;
+}
+
+function _except($e){
+	if($e->getCode() == 42000){
+		error_log("[except] DB Error 42000: ".db::$query);
+	}
+
+	$msg = $e->getMessage();
+	$ln = $e->getLine(); 
+	trigger_error("[except] [line: $ln] $msg", E_USER_ERROR);
+	json::error("INTERNAL_SERVICE_ERROR");
+	json::send(500);
+	exit;
+}
+
+// function _error_handler($error_level, $error_message, $error_file, $error_line,$error_context){
+// 	$request_id = isset($_SERVER['_REQ_ID'])?$_SERVER['_REQ_ID']:'0';
+// 	$ip = $_SERVER['REMOTE_ADDR'];
+// 	$str = "$request_id > $ip - ";
+// 	$str .= "[JSON SERVICE] $error_message - [$error_line] $error_file -  $error_level";
+// 	error_log($str);
+// }
+
+// set_error_handler('_error_handler');
+set_exception_handler('_exception_handler');
+register_shutdown_function('_shutdown_handler');
+
+define('_BASEURL',$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'{{ APP_BASEURI }}');
+define('_BASEURI','{{ APP_BASEURI }}');
+define('_LANG_DEF','{{ LANG_DEF }}');
+
+$uri = $_SERVER['REQUEST_URI'];
+// remove query string
+if(false !== ($pos=mb_strrpos($uri,'?'))){
+	$uri = mb_substr($uri,0,$pos);
+}
+
+// remove basepath from uri
+if(mb_strpos($uri,'{{ APP_BASEURI }}')===0){
+	$uri = mb_substr($uri,mb_strlen('{{ APP_BASEURI }}'));
+}
+
+define('_URI',$uri);
+define('_LANG','{{ LANG_DEF }}');

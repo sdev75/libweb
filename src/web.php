@@ -32,8 +32,6 @@ function _except($e){
 set_exception_handler('_except');
 register_shutdown_function('_shut');
 
-set_include_path('{{ INCLUDE_PATH }}');
-
 define('_BASEURL',$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'{{ APP_BASEURI }}');
 define('_BASEURI','{{ APP_BASEURI }}');
 define('_LANG_DEF','{{ LANG_DEF }}');
