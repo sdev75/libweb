@@ -44,11 +44,3 @@ define('_LANG_DEF','{{ LANG_DEF }}');
 $_view_vars = [];
 $_view_vars['_base_url'] = _BASEURL;
 $_view_vars['_base_uri'] = '/'.ltrim(_BASEURI,'/');
-
-#if DEBUG
-if(isset($_GET['debug']) && $_GET['debug'] === '33967'){
-	$_SERVER['_GT_BEG'] = microtime(1);
-	$_SERVER['_GM_BEG'] = memory_get_usage();
-	$_SERVER['_DEBUG'] = true;
-}
-#endif
