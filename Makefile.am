@@ -57,10 +57,7 @@ lib: env
 		--in "$(abs_builddir)/.cache/lib" \
 		--out "$(abs_builddir)/src/lib" \
 		--include-path "$(abs_builddir)/src" \
-		$(DFLAGS) \
-	&& \
-	rm -r $(abs_builddir)/src/lib/libweb; \
-	cp -r $(abs_builddir)/src/lib/libweb-$$version $(abs_builddir)/src/lib/libweb
+		$(DFLAGS) 
 
 code: lib
 	@\
@@ -87,7 +84,11 @@ view: code
 		$(DFLAGS)
 
 public:
-	cp -ur $(abs_builddir)/src/public $(abs_builddir)/dist/public
+	@echo -e "Building $(FBOLD)$@$(CNUL)..."
+	@rm -rf $(abs_builddir)/dist/public
+	@mkdir -p $(abs_builddir)/dist/public
+	@cp -r $(abs_builddir)/src/public/* $(abs_builddir)/dist/public
+	@printf "done!\n"
 
 build: view public
 

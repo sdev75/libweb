@@ -36,7 +36,7 @@ class Preprocessor {
 			$else_block = mb_substr($buf, $else + $else_offset, $endif-$else - $else_offset);
 		}else{
 			$if_block = mb_substr($buf, $if+$if_offset, $endif-$if-$if_offset);
-			//$else_block = '';
+			$else_block = '';
 		}
 		
 		$newbuf = "";
