@@ -135,7 +135,7 @@ class CodeControllerMeta {
 		if(empty($layout)){
 			$layout = $this->layout;
 		}
-		
+
 		$this->layout = $layout;
 		$this->script = $script;
 		$this->has_view = true;
@@ -388,7 +388,6 @@ class CodeBuilder {
 		}
 
 		$c_meta = self::getMetadataFromAnnotations($buf, $c_meta);
-		var_dump($c_meta);exit(1);
 		if(!$c_meta->valid){
 			throw new Exception("Invalid controller meta#2 for '$filename'");
 		}
