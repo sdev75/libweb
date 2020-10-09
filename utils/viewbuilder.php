@@ -78,7 +78,7 @@ class ViewBuilder {
 	}
 
 	public static function getIncludesByControllerName(string $name){
-		return isset(self::$includes[$name]) ? self::$includes[$name] : false;
+		return isset(self::$includes[$name]) ? self::$includes[$name] : [];
 	}
 
 	public static function doesIncludeExist(array $includes, string $val){
