@@ -49,8 +49,8 @@ lib: env
 	@\
 	version=$$(cat ${abs_srcdir}/VERSION); \
 	mkdir -p $(abs_builddir)/.cache/lib; \
-	rm -r $(abs_builddir)/.cache/lib/libweb-$$version; \
-	cp -r $(abs_srcdir)/src $(abs_builddir)/.cache/lib/libweb-$$version \
+	rm -r $(abs_builddir)/.cache/lib/libw-$$version; \
+	cp -r $(abs_srcdir)/src $(abs_builddir)/.cache/lib/libw-$$version \
 	&& \
 	php "$(abs_srcdir)/tools/build-src.php" \
 		--env "$(abs_builddir)/.cache/config.env" \

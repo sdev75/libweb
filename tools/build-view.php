@@ -10,8 +10,8 @@ include __DIR__.'/../utils/envbuilder.php';
 include __DIR__.'/../utils/libbuilder.php';
 include __DIR__.'/../utils/viewbuilder.php';
 include __DIR__.'/../utils/preprocessor.php';
-include $opt['include-path']."/lib/libweb-{$version}/view/parser.php";
-include $opt['include-path']."/lib/libweb-{$version}/view/combiner.php";
+include $opt['include-path']."/lib/libw-{$version}/view/parser.php";
+include $opt['include-path']."/lib/libw-{$version}/view/combiner.php";
 
 EnvBuilder::import($opt['env']);
 $env = EnvBuilder::getVars();

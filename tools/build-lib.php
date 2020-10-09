@@ -17,7 +17,7 @@ LibBuilder::$version = $version;
 foreach($codes as $code){
 
 	$files = $cfg[$code];
-	$output = $opt['out']."/libweb/$code.php";
+	$output = $opt['out']."/libw/$code.php";
 	LibBuilder::parse($opt['in'], $files, $env, $output);
 }
 

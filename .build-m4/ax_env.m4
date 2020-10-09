@@ -39,3 +39,8 @@ else
 fi
 AM_CONDITIONAL([DEPLOYABLE], [test x$DEPLOYABLE = x1])
 AC_SUBST([DEPLOYABLE])
+
+# echo -e $xxx > $abs_builddir/test.sh
+# chmod +x $abs_builddir/test.sh
+# cp $abs_srcdir/libver.sh $abs_builddir/libver.sh
+# chmod +x $abs_builddir/libver.sh

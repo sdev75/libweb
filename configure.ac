@@ -3,7 +3,7 @@
 m4_include([VERSION])
 
 AC_PREREQ([2.69])
-AC_INIT([libweb],
+AC_INIT([libw],
 m4_esyscmd_s(cat VERSION),
 [29279974+sdev75@users.noreply.github.com])
 
@@ -22,7 +22,8 @@ m4_include([.build-m4/ax_env.m4])
 # fi
 
 AC_CONFIG_FILES([
-  Makefile 
+  Makefile
+  libver.sh
 ])
 AC_OUTPUT
 cat << EOF
@@ -37,3 +38,5 @@ ${PACKAGE_NAME} ${PACKAGE_VERSION}
   
 --------------------------------------------------
 EOF
+
+chmod +x $abs_builddir/libver.sh

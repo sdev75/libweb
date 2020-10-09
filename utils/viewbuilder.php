@@ -171,20 +171,20 @@ class ViewBuilder {
 
 		// TODO: clean up and improve the quality of code (still good though)
 		$includes = self::getIncludesByControllerName($view['controller']);
-		$inc = self::getIncludeByCode($includes,'lib/libweb/view.php');
+		$inc = self::getIncludeByCode($includes,'lib/libw/view.php');
 		if(!empty($inc)){
-			$t = file_get_contents(self::$include_path."/lib/libweb-{$inc['ver']}/include/view.prolog.php");
+			$t = file_get_contents(self::$include_path."/lib/libw-{$inc['ver']}/include/view.prolog.php");
 			$buf .= substr($t,5);
 			$buf .= "\n?>\n";
 			$buf .= $buf_view;
-			$t = file_get_contents(self::$include_path."/lib/libweb-{$inc['ver']}/include/view.epilog.php");
+			$t = file_get_contents(self::$include_path."/lib/libw-{$inc['ver']}/include/view.epilog.php");
 			$buf .= $t;
 		}else{
 			$buf .= "\n?>\n";
 			$buf .= $buf_view;
 		}
 
-		$inc = self::getIncludeByCode($includes,'lib/libweb/session.php');
+		$inc = self::getIncludeByCode($includes,'lib/libw/session.php');
 		if(!empty($inc)){
 			$t = <<< EOT
 			if(!empty(\$_SESSION['userdata'])){

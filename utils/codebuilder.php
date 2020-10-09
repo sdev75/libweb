@@ -446,10 +446,10 @@ class CodeBuilder {
 	public static function getIncludeInfo(string $type, string $path, array $path_arr){
 		if($type === 'lib'){
 			$t = explode('-',$path_arr[0]);
-			if($t[0] === 'libweb' && isset($t[1])){
+			if($t[0] === 'libw' && isset($t[1])){
 				return [
 					'include' => "$type/$path",
-					'code' => "lib/libweb/".end($path_arr),
+					'code' => "lib/libw/".end($path_arr),
 					'ver' => $t[1],
 				];
 			}
@@ -471,7 +471,7 @@ class CodeBuilder {
 			}
 		}
 
-		return false;
+		return [];
 	}
 
 	public static function parseAndPatch(string $buf, string $controller_path) {
@@ -507,27 +507,17 @@ class CodeBuilder {
 			$buf = self::parseAndPatch($buf, $controller_path);
 		}
 
-		$inc = self::getIncludeByCode('lib/libweb/web.php');
+		$inc = self::getIncludeByCode('lib/libw/web.php');
 		if($inc){
-			$t = file_get_contents(self::$include_path."/lib/libweb-{$inc['ver']}/include/web.prolog.php");
+			$t = file_get_contents(self::$include_path."/lib/libw-{$inc['ver']}/include/web.prolog.php");
 			$buf = str_replace("# web.prolog\n", $t, $buf);
-			$t = file_get_contents(self::$include_path."/lib/libweb-{$inc['ver']}/include/web.epilog.php");
+			$t = file_get_contents(self::$include_path."/lib/libw-{$inc['ver']}/include/web.epilog.php");
 			$buf = str_replace("# web.epilog\n", $t, $buf);
 		}
 	
 		$buf = self::patchEnvVars($buf);
 		return $buf;
 	}
-
-	// TODO...
-	// public static function getLibwebIncludeByPath(string $path){
-	// 	$t = explode('/',$path);
-	// 	if(isset($t[0]) && $t[0] === 'lib'){
-	// 		if(isset($t[1]) && $t[1] === 'libweb'){
-				
-	// 		}
-	// 	}
-	// }
 
 	public static function doesIncludeExist(string $path, string $val){
 		var_dump($val);die;

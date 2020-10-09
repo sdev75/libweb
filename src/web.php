@@ -35,7 +35,3 @@ register_shutdown_function('_shut');
 define('_BASEURL',$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'{{ APP_BASEURI }}');
 define('_BASEURI','{{ APP_BASEURI }}');
 define('_LANG_DEF','{{ LANG_DEF }}');
-
-$_view_vars = [];
-$_view_vars['_base_url'] = _BASEURL;
-$_view_vars['_base_uri'] = '/'.ltrim(_BASEURI,'/');
