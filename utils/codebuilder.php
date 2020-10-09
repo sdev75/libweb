@@ -6,8 +6,7 @@ class CodeRoute {
 	public array $patterns = [];
 	public array $methods = [];
 	public array $formats = [];
-	public string $layout;
-	public string $script;
+	public string $view;
 
 	public function toArray(){
 		return [
@@ -19,8 +18,7 @@ class CodeRoute {
 			'formats' => $this->formats,
 			// 'flags' => $this->flags,
 			// 'controller' => $this->controller,
-			'layout' => $this->layout,
-			'script' => $this->script,
+			'view' => $this->view,
 		];
 	}
 }
@@ -33,15 +31,12 @@ controller
 			/clientx/[a-z]
 		data
 			amp
-				layout = amp
-				script = client/amp/client.phtml
+				view = client/amp/client.phtml
 				method = get [default]
 			html [default]
-				layout = html
 				script = client/client.phtml
 				method = get post
 			json
-				layout = null [default]
 				method get post
 
 	page2
@@ -50,15 +45,12 @@ controller
 			/client2x/[a-z]
 		data
 			amp
-				layout = amp
 				script = client/amp/client.phtml
 				method = get [default]
 			html [default]
-				layout = html
 				script = client/client.phtml
 				method = get post
 			json
-				layout = null [default]
 				method get post	
 */
 class CodeControllerMetaCollection {
@@ -88,8 +80,7 @@ class CodeControllerMetaCollection {
 		}
 
 		$this->data[$id]['formats'][$format] = [
-			'layout' => $meta->layout,
-			'script' => $meta->script,
+			'view' => $meta->view,
 			'path' => $meta->path,
 			'has_view' => $meta->has_view,
 		];
@@ -110,8 +101,7 @@ class CodeControllerMeta {
 	public string $path;
 	public string $format = 'html';
 	public string $method = 'get';
-	public string $layout = 'html';
-	public string $script = '';
+	public string $view = '';
 	public array $patterns = [];
 	public bool $valid = false;
 	public bool $has_view = false;
@@ -124,20 +114,14 @@ class CodeControllerMeta {
 		$this->method = strtolower($method);
 	}
 
-	public function setView(string $script, string $layout){	
+	public function setView(string $view){	
 
-		if(empty($script)){
-			$this->script = '';
+		if(empty($view)){
 			$this->has_view = false;
-			$layout = '';
 			return;
 		}
-		if(empty($layout)){
-			$layout = $this->layout;
-		}
 
-		$this->layout = $layout;
-		$this->script = $script;
+		$this->view = $view;
 		$this->has_view = true;
 	}
 
@@ -266,19 +250,12 @@ class CodeBuilder {
 			switch($key){
 				case 'id':
 					$meta->id = $val;
-					//$ann->setId($val);
 					break;
 				case 'route': 
 					$meta->addPattern($val);
 					break;
 				case 'view': 
-					$arr = explode('/',$val);
-					if(!count($arr) > 2){
-						throw new Exception("Invalid view value: '$val'");
-					}
-					$layout = array_shift($arr);
-					$script = implode('/',$arr);
-					$meta->setView($script,$layout);
+					$meta->setView($val);
 					break;
 				default:
 					break;
@@ -319,8 +296,7 @@ class CodeBuilder {
 				if($arr['has_view']){
 					self::$views[$id] = [
 						'controller' => $arr['path'],
-						'layout' => $arr['layout'],
-						'script' => $arr['script'],
+						'view' => $arr['view'],
 					];
 				}
 			}

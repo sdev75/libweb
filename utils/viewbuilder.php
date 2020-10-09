@@ -109,13 +109,6 @@ class ViewBuilder {
 		fprintf(STDOUT,"\e[37m\t+ %-80s\t>> %-40s\e[0m\n",$in_filename,$out_filename);
 	}
 
-	public static function doesViewExist(string $layout_filename, string $script_filename): bool{
-		if(!file_exists($layout_filename) || !file_exists($script_filename)){
-			return false;
-		}
-		return true;
-	}
-
 	public static function getIncludeByCode(array $includes, string $code) : array{
 		foreach($includes as $a){
 			if($a['code'] === $code){
@@ -136,14 +129,11 @@ class ViewBuilder {
 
 		$buf = self::stripHashComments($buf);
 
-		$layout_filename = "{$inpath}/layout/{$view['layout']}.phtml";
-		$script_filename = "{$inpath}/script/{$view['script']}.phtml";
-		$view_filename = "{$view['layout']}:{$view['script']}";
+		$view_filename = "{$inpath}/{$view['view']}.html";
 		$output_filename = "{$outpath}/{$view['controller']}";
 
 		// Check if view exists, otherwise output the buffer as it is
-		$view_exists = self::doesViewExist($layout_filename, $script_filename);
-		if(!$view_exists){
+		if(!file_exists($view_filename)){
 			fprintf(STDERR,
 			"\e[0;93mWARNING: VIEW not found: '$view_filename'\e[0m\n");
 			
@@ -153,18 +143,10 @@ class ViewBuilder {
 		}
 
 		$_b=microtime(1);
-		// combine view files to buf
-		$t = new ViewCombiner();
-		$buf_layout = $t->parse($layout_filename, $inpath);
-		$buf_script = $t->parse($script_filename, $inpath);
-		$buf_view = str_replace("{% include script %}",$buf_script,$buf_layout);
-
-		// parse combined view files buf
+		$buf_view = file_get_contents($view_filename);
 		$t = new ViewParser('',[]);
 		$buf_view = $t->parse($buf_view);
 		$_e=microtime(1);
-
-		unset($buf_layout,$buf_script,$t);
 
 		$buf_view = self::stripSpaces($buf_view);
 		$buf_view = self::stripHtmlSpaces($buf_view);
