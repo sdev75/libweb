@@ -378,16 +378,9 @@ class CodeBuilder {
 		}
 
 		$buf = '';
-		if(self::doesIncludeExist($c_meta->path,'lib/libweb/web.php')){
-			$t = file_get_contents(self::$include_path.'/lib/libweb/include/web.prolog.php');
-			$buf .= $t;
-			$buf .= file_get_contents($filename);
-			$t = file_get_contents(self::$include_path.'/lib/libweb/include/web.epilog.php');
-			$buf .= $t;
-		}else{
-			$buf = file_get_contents($filename);
-		}
-
+		$buf .= "# web.prolog\n";
+		$buf .= file_get_contents($filename);
+		$buf .= "# web.epilog\n";
 		$buf = self::parseAndPatch($buf,$c_meta->path);
 		$c_meta = self::getMetadataFromAnnotations($buf, $c_meta);
 		if(!$c_meta->valid){
@@ -480,6 +473,14 @@ class CodeBuilder {
 
 			// support recursive parsing and patching
 			$buf = self::parseAndPatch($buf, $controller_path);
+		}
+
+	
+		if(self::doesIncludeExist($controller_path,'lib/libweb/web.php')){
+			$t = file_get_contents(self::$include_path.'/lib/libweb/include/web.prolog.php');
+			$buf = str_replace("# web.prolog\n", $t, $buf);
+			$t = file_get_contents(self::$include_path.'/lib/libweb/include/web.epilog.php');
+			$buf = str_replace("# web.epilog\n", $t, $buf);
 		}
 	
 		$buf = self::patchEnvVars($buf);
