@@ -1,6 +1,6 @@
 <?php
 #if DEBUG
-$_SERVER['_GT_BEG'] = microtime(1);
-$_SERVER['_GM_BEG'] = memory_get_usage();
+$_SERVER['_CT_BEG'] = microtime(1);
+$_SERVER['_CM_BEG'] = memory_get_usage();
 #endif
 

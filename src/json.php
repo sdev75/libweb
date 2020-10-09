@@ -115,15 +115,6 @@ function _except($e){
 	exit;
 }
 
-// function _error_handler($error_level, $error_message, $error_file, $error_line,$error_context){
-// 	$request_id = isset($_SERVER['_REQ_ID'])?$_SERVER['_REQ_ID']:'0';
-// 	$ip = $_SERVER['REMOTE_ADDR'];
-// 	$str = "$request_id > $ip - ";
-// 	$str .= "[JSON SERVICE] $error_message - [$error_line] $error_file -  $error_level";
-// 	error_log($str);
-// }
-
-// set_error_handler('_error_handler');
 set_exception_handler('_exception_handler');
 register_shutdown_function('_shutdown_handler');
 

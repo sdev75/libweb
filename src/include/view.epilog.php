@@ -14,5 +14,5 @@ $_SERVER['_VT'],
 $_SERVER['_VM'],
 );
 
-error_log($msg,E_USER_NOTICE);
+error_log($msg);
 #endif
