@@ -116,6 +116,16 @@ class ViewBuilder {
 		return true;
 	}
 
+	public static function getIncludeByCode(array $includes, string $code) : array{
+		foreach($includes as $a){
+			if($a['code'] === $code){
+				return $a;
+			}
+		}
+
+		return [];
+	}
+
 	public static function build(array $view, string $path_code, string $inpath, string $outpath){
 	
 		$code_filename = "{$path_code}/{$view['controller']}";
@@ -161,26 +171,27 @@ class ViewBuilder {
 
 		// TODO: clean up and improve the quality of code (still good though)
 		$includes = self::getIncludesByControllerName($view['controller']);
-		if(self::doesIncludeExist($includes,'lib/libweb/session.php')){
-			// definitely using the view
-			$t = <<< EOT
-				if(!empty(\$_SESSION['userdata'])){
-					\$_view_vars['_user'] = \$_SESSION['userdata'];
-				}
-			EOT;
-			$buf .= $t;
-		}
-
-		if(self::doesIncludeExist($includes,'lib/libweb/view.php')){
-			$t = file_get_contents(self::$include_path.'/lib/libweb/include/view.prolog.php');
+		$inc = self::getIncludeByCode($includes,'lib/libweb/view.php');
+		if(!empty($inc)){
+			$t = file_get_contents(self::$include_path."/lib/libweb-{$inc['ver']}/include/view.prolog.php");
 			$buf .= substr($t,5);
 			$buf .= "\n?>\n";
 			$buf .= $buf_view;
-			$t = file_get_contents(self::$include_path.'/lib/libweb/include/view.epilog.php');
+			$t = file_get_contents(self::$include_path."/lib/libweb-{$inc['ver']}/include/view.epilog.php");
 			$buf .= $t;
 		}else{
 			$buf .= "\n?>\n";
 			$buf .= $buf_view;
+		}
+
+		$inc = self::getIncludeByCode($includes,'lib/libweb/session.php');
+		if(!empty($inc)){
+			$t = <<< EOT
+			if(!empty(\$_SESSION['userdata'])){
+				\$_view_vars['_user'] = \$_SESSION['userdata'];
+			}
+			EOT;
+			$buf .= $t;
 		}
 
 		if(self::$pp){

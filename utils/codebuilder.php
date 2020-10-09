@@ -443,6 +443,37 @@ class CodeBuilder {
 		return $buf;
 	}
 
+	public static function getIncludeInfo(string $type, string $path, array $path_arr){
+		if($type === 'lib'){
+			$t = explode('-',$path_arr[0]);
+			if($t[0] === 'libweb' && isset($t[1])){
+				return [
+					'include' => "$type/$path",
+					'code' => "lib/libweb/".end($path_arr),
+					'ver' => $t[1],
+				];
+			}
+		}
+
+		return [
+			'include' => "$type/$path",
+			'code' => "$type/$path",
+			'ver' => '',
+		];
+	}
+
+	public static function getIncludeByCode(string $code) : array{
+		foreach(self::$includes as $k => $includes){
+			foreach($includes as $a){
+				if($a['code'] === $code){
+					return $a;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	public static function parseAndPatch(string $buf, string $controller_path) {
 		
 		$buf = self::patchEnvVars($buf);
@@ -464,8 +495,9 @@ class CodeBuilder {
 				if(!file_exists($include_filename)){
 					throw new Exception("Include missing: $include_filename ($needle)");
 				}
-				
-				self::$includes[$controller_path] []= "$type/$path";
+
+				$t = self::getIncludeInfo($type,$path,$path_arr);
+				self::$includes[$controller_path] []= $t;
 			
 				$buf_include = file_get_contents($include_filename);
 				$buf = str_replace($needle,$buf_include,$buf);
@@ -475,11 +507,11 @@ class CodeBuilder {
 			$buf = self::parseAndPatch($buf, $controller_path);
 		}
 
-	
-		if(self::doesIncludeExist($controller_path,'lib/libweb/web.php')){
-			$t = file_get_contents(self::$include_path.'/lib/libweb/include/web.prolog.php');
+		$inc = self::getIncludeByCode('lib/libweb/web.php');
+		if($inc){
+			$t = file_get_contents(self::$include_path."/lib/libweb-{$inc['ver']}/include/web.prolog.php");
 			$buf = str_replace("# web.prolog\n", $t, $buf);
-			$t = file_get_contents(self::$include_path.'/lib/libweb/include/web.epilog.php');
+			$t = file_get_contents(self::$include_path."/lib/libweb-{$inc['ver']}/include/web.epilog.php");
 			$buf = str_replace("# web.epilog\n", $t, $buf);
 		}
 	
@@ -487,7 +519,18 @@ class CodeBuilder {
 		return $buf;
 	}
 
+	// TODO...
+	// public static function getLibwebIncludeByPath(string $path){
+	// 	$t = explode('/',$path);
+	// 	if(isset($t[0]) && $t[0] === 'lib'){
+	// 		if(isset($t[1]) && $t[1] === 'libweb'){
+				
+	// 		}
+	// 	}
+	// }
+
 	public static function doesIncludeExist(string $path, string $val){
+		var_dump($val);die;
 		if(!isset(self::$includes[$path])){
 			return false;
 		}

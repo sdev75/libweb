@@ -6,15 +6,7 @@ class db {
 	public static $sth;
 	public static $query;
 	public static $error;
-	public static $params = array();
-
-	public static function init(){
-		$dsn = "mysql:host=localhost;dbname={{ DB_NAME }};charset=utf8";
-		self::$pdo = new PDO($dsn,'{{ DB_USER }}','{{ DB_PASS }}',[
-			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-			PDO::MYSQL_ATTR_LOCAL_INFILE => 1,
-		]);
-	}
+	public static $params = [];
 
 	public static function close(){
 		if(self::$pdo && self::$pdo->inTransaction()){
@@ -24,12 +16,13 @@ class db {
 		self::$sth = null;
 	}
 
+	// RETURNS ROW AFFECTED (USEFUL FOR DELETE;UPDATE)
 	public static function exec($query){
 		self::$query = $query;
-		return self::$pdo->exec($query); // RETURNS ROW AFFECTED (USEFUL FOR DELETE;UPDATE)
+		return self::$pdo->exec($query); 
 	}
 
-	public static function lastInsertId(){
+	public static function insertId(){
 		return self::$pdo->lastInsertId();
 	}
 
@@ -321,3 +314,8 @@ class db {
 		return false;
 	}
 }
+
+db::$pdo = new PDO('{{db_dsn}}','{{db_user}}','{{db_pass}}',[
+	PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+	PDO::MYSQL_ATTR_LOCAL_INFILE => 1,
+]);
