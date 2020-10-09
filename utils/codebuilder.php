@@ -309,8 +309,6 @@ class CodeBuilder {
 				self::$routes_rmap[$pattern] = $route_data;
 			}
 		}
-		// var_dump(self::$routes,self::$routes_rmap);
-		// exit(1);
 	}
 
 	public static function buildViewsFromMetadata(){
@@ -379,14 +377,18 @@ class CodeBuilder {
 			throw new Exception("Invalid controller meta#1 for '$filename'");
 		}
 
-		$buf = file_get_contents($filename);
-		$buf = self::parseAndPatch($buf,$c_meta->path);
-
+		$buf = '';
 		if(self::doesIncludeExist($c_meta->path,'lib/libweb/web.php')){
-			$epilog = file_get_contents(self::$include_path.'/lib/libweb/web.epilog.php');
-			$buf .= $epilog;
+			$t = file_get_contents(self::$include_path.'/lib/libweb/include/web.prolog.php');
+			$buf .= $t;
+			$buf .= file_get_contents($filename);
+			$t = file_get_contents(self::$include_path.'/lib/libweb/include/web.epilog.php');
+			$buf .= $t;
+		}else{
+			$buf = file_get_contents($filename);
 		}
 
+		$buf = self::parseAndPatch($buf,$c_meta->path);
 		$c_meta = self::getMetadataFromAnnotations($buf, $c_meta);
 		if(!$c_meta->valid){
 			throw new Exception("Invalid controller meta#2 for '$filename'");
@@ -453,7 +455,8 @@ class CodeBuilder {
 		$buf = self::patchEnvVars($buf);
 		$buf = self::replaceViewAssignments($buf);
 
-		if(preg_match_all('~@include "([^"]+)"~',$buf,$matches)){
+		if(preg_match_all('~@include "([^"]+)";?~',$buf,$matches)){
+		//if(preg_match_all('~# ?include <([^>]+)>~',$buf,$matches)){
 			$len = count($matches[0]);
 		
 			for($i=0;$i<$len;$i++){
@@ -466,7 +469,7 @@ class CodeBuilder {
 				$include_filename = "{$include_path}/$type/$path";
 
 				if(!file_exists($include_filename)){
-					throw new Exception("file_exists(): $include_filename ($needle)");
+					throw new Exception("Include missing: $include_filename ($needle)");
 				}
 				
 				self::$includes[$controller_path] []= "$type/$path";

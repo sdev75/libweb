@@ -109,6 +109,13 @@ class ViewBuilder {
 		fprintf(STDOUT,"\e[37m\t+ %-80s\t>> %-40s\e[0m\n",$in_filename,$out_filename);
 	}
 
+	public static function doesViewExist(string $layout_filename, string $script_filename): bool{
+		if(!file_exists($layout_filename) || !file_exists($script_filename)){
+			return false;
+		}
+		return true;
+	}
+
 	public static function build(array $view, string $path_code, string $inpath, string $outpath){
 	
 		$code_filename = "{$path_code}/{$view['controller']}";
@@ -125,18 +132,11 @@ class ViewBuilder {
 		$output_filename = "{$outpath}/{$view['controller']}";
 
 		// Check if view exists, otherwise output the buffer as it is
-		$view_exists = true;
-		if(!file_exists($layout_filename)){
-			fprintf(STDERR,
-			"\e[0;93mWARNING: VIEW LAYOUT not found: $layout_filename\e[0m\n");
-			$view_exists = false;
-		}
-		if($view_exists && !file_exists($script_filename)){
-			fprintf(STDERR,
-			"\e[0;93mWARNING: VIEW SCRIPT not found: $script_filename\e[0m\n");
-			$view_exists = false;
-		}
+		$view_exists = self::doesViewExist($layout_filename, $script_filename);
 		if(!$view_exists){
+			fprintf(STDERR,
+			"\e[0;93mWARNING: VIEW not found: '$view_filename'\e[0m\n");
+			
 			self::writeOutputToFile($output_filename, $buf);
 			self::writeOutputToStdout($view_filename, $output_filename);
 			return;
@@ -161,7 +161,7 @@ class ViewBuilder {
 
 		// TODO: clean up and improve the quality of code (still good though)
 		$includes = self::getIncludesByControllerName($view['controller']);
-		if(self::doesIncludeExist($includes,'lib/libweb/session')){
+		if(self::doesIncludeExist($includes,'lib/libweb/session.php')){
 			// definitely using the view
 			$t = <<< EOT
 				if(!empty(\$_SESSION['userdata'])){
@@ -171,22 +171,23 @@ class ViewBuilder {
 			$buf .= $t;
 		}
 
-		
-		$prolog = file_get_contents(self::$include_path.'/lib/libweb/view.prolog.php');
-		$buf .= substr($prolog,5);
+		if(self::doesIncludeExist($includes,'lib/libweb/view.php')){
+			$t = file_get_contents(self::$include_path.'/lib/libweb/include/view.prolog.php');
+			$buf .= substr($t,5);
+			$buf .= "\n?>\n";
+			$buf .= $buf_view;
+			$t = file_get_contents(self::$include_path.'/lib/libweb/include/view.epilog.php');
+			$buf .= $t;
+		}else{
+			$buf .= "\n?>\n";
+			$buf .= $buf_view;
+		}
+
 		if(self::$pp){
 			$buf = self::$pp->parseIfElseCond($buf);
 		}
-
-		$buf .= "\n?>\n";
-		$buf .= $buf_view;
-
-		$epilog = file_get_contents(self::$include_path.'/lib/libweb/view.epilog.php');
-		$buf .= $epilog;
-		if(self::$pp){
-			$buf = self::$pp->parseIfElseCond($buf);
-		}
 		
+		unset($t);
 		self::writeOutputToFile($output_filename, $buf);
 		self::writeOutputToStdout($view_filename, $output_filename, $_e-$_b);
 	}
