@@ -1,4 +1,5 @@
 <?php
+
 #if DEBUG
 if(isset($_SERVER['_DEBUG'])){
 	// controller
@@ -18,3 +19,4 @@ if(isset($_SERVER['_DEBUG'])){
 	error_log($msg,E_USER_NOTICE);
 }
 #endif
+
