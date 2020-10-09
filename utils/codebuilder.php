@@ -125,16 +125,18 @@ class CodeControllerMeta {
 	}
 
 	public function setView(string $script, string $layout){	
+
 		if(empty($script)){
 			$this->script = '';
 			$this->has_view = false;
 			$layout = '';
 			return;
 		}
-
 		if(empty($layout)){
 			$layout = $this->layout;
 		}
+		
+		$this->layout = $layout;
 		$this->script = $script;
 		$this->has_view = true;
 	}
@@ -251,8 +253,6 @@ class CodeBuilder {
 
 	public static function getMetadataFromAnnotations(string $buf, CodeControllerMeta $metadata) : CodeControllerMeta{
 
-		//$ann = new CodeAnnotation();
-
 		$meta = clone $metadata;
 
 		preg_match_all("~# @([a-zA-Z]+)[ \t]*([^\n]+)~",$buf,$matches);
@@ -285,14 +285,6 @@ class CodeBuilder {
 			}
 		}
 
-		// If no ID, use ID passed in params
-		// if(!isset($ann->id)){
-		// 	$ann->setId($meta->id);
-		// }
-
-		// if(!isset($ann->view)){
-		// 	$ann->setView($meta->view);
-		// }
 		return $meta;
 	}
 
@@ -396,6 +388,7 @@ class CodeBuilder {
 		}
 
 		$c_meta = self::getMetadataFromAnnotations($buf, $c_meta);
+		var_dump($c_meta);exit(1);
 		if(!$c_meta->valid){
 			throw new Exception("Invalid controller meta#2 for '$filename'");
 		}
