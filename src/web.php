@@ -32,9 +32,6 @@ function _except($e){
 set_exception_handler('_except');
 register_shutdown_function('_shut');
 
-ob_start();
-mb_internal_encoding('UTF-8');
-date_default_timezone_set('{{ TIMEZONE_DEF }}');
 set_include_path('{{ INCLUDE_PATH }}');
 
 define('_BASEURL',$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'{{ APP_BASEURI }}');
