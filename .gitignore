@@ -15,4 +15,3 @@ configure
 *TODO
 src/ncurses
 .todo
-libver.sh
