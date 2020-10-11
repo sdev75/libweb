@@ -76,7 +76,7 @@ view: code
 	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
 	rm -rf "$(abs_builddir)/.cache/view"; \
 	cd "$(abs_builddir)/src/view"; \
-	gulp && \
+	gulp html && \
 	php "$(abs_srcdir)/tools/build-view.php" \
 		--cache-path "$(abs_builddir)/.cache" \
 		--env "$(abs_builddir)/.cache/config.env" \
@@ -85,6 +85,36 @@ view: code
 		--include-path "$(abs_builddir)/src" \
 		--path-code "$(abs_builddir)/dist/code" \
 		$(DFLAGS)
+
+css:
+	@\
+	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
+	cd "$(abs_builddir)/src/view"; \
+	gulp css
+
+fonts:
+	@\
+	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
+	cd "$(abs_builddir)/src/view"; \
+	gulp fonts
+
+view-plugins:
+	@\
+	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
+	cd "$(abs_builddir)/src/view"; \
+	gulp plugins
+
+js:
+	@\
+	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
+	cd "$(abs_builddir)/src/view"; \
+	gulp js
+
+assets:
+	@\
+	echo -e "Building $(FBOLD)$@$(CNUL)..."; \
+	cd "$(abs_builddir)/src/view"; \
+	gulp assets
 
 public:
 	@echo -e "Building $(FBOLD)$@$(CNUL)..."
