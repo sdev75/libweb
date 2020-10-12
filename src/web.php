@@ -2,17 +2,34 @@
 
 function _shut(){
 	$e = error_get_last();
-	if($e === NULL)
-		return;
+	if($e === NULL){
 
-	$fmt = "[shut] File: {$e['file']} @ {$e['line']} Type: {$e['type']} IP: {$_SERVER['REMOTE_ADDR']}";
-	error_log($fmt);
+		// if(!empty($_redirect)){
+		// 	if(session_status() === PHP_SESSION_ACTIVE){
+				
+		// 		// foreach($_request as $key){
+		// 		// 	$_SESSION['_request'][$key] = $_REQUEST[$key];
+		// 		// }
+		// 		// $_SESSION['_msg'] = $_msg;
+		// 		// $_SESSION['_errors'] = $_errors;
+		// 		// $_SESSION['_redirect'] = true;
+		// 		session_write_close();	
+		// 	}
+		// 	header("Location: $_redirect");
+		// }
+		error_log(var_export($_request,true));
+		error_log("SESSION STATUS: ". session_status());
+		return;
+	}
+
+	$buf = sprintf("[exit] IP: %s Type: %d File: %s @ %d",
+		$_SERVER['REMOTE_ADDR'], $e['type'], $e['file'], $e['line']);
+	error_log($buf);
+	unset($buf);
 
 	if($e['type'] === E_COMPILE_ERROR ||
 		$e['type'] === E_PARSE || 
 		$e['type'] === E_USER_ERROR){
-		if(ob_get_level())
-			ob_clean();
 		header('HTTP/1.1 500 Internal Server Error');
 		include '{{ PATH_PUBLIC }}/error/500.html';
 		exit(1);
@@ -49,7 +66,7 @@ if(mb_strpos($uri,'{{ APP_BASEURI }}')===0){
 
 define('_URI',$uri);
 
-$_redirect = false;
-$_request = [];
+$_redirectx = 'false;testing;';
+$_request = ['test','testing'];
 $_errors = [];
 $_view = [];

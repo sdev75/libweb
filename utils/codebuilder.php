@@ -540,6 +540,34 @@ class CodeBuilder {
 		return $buf;
 	}
 
+	public static function replaceGlobalVariable(string $buf, string $keyword){
+		$k = "\$_{$keyword}";
+		$replace = "\$_SERVER['_{$keyword}']";
+		$beg = mb_strpos($buf,$k, 0);
+		if ($beg !== FALSE){
+			$end = mb_strpos($buf, "\n", $beg);
+			$len = strlen($k);
+			$t = mb_substr($buf, $beg+$len, $end-$beg-$len);
+			$t_end = mb_strrpos($t,';',0);
+			if($t_end !== FALSE){
+				$t = mb_substr($t,0,$t_end);
+				$needle = mb_substr($buf, $beg, $end - $beg);
+				$buf = str_replace($needle, "{$replace}{$t};", $buf);
+				return $buf;
+			}
+		}
+
+		return $buf;
+	}
+
+	public static function replaceGlobalAssignments(string $buf){
+		$buf = self::replaceGlobalVariable($buf, 'request');
+		$buf = self::replaceGlobalVariable($buf, 'messages');
+		$buf = self::replaceGlobalVariable($buf, 'errors');
+		$buf = self::replaceGlobalVariable($buf, 'redirect');
+		return $buf;
+	}
+
 	public static function getIncludeInfo(string $type, string $path, array $path_arr){
 		if($type === 'lib'){
 			$t = explode('-',$path_arr[0]);
@@ -585,6 +613,7 @@ class CodeBuilder {
 		//$buf = self::parseInlineFunctions($buf);
 		$buf = self::patchEnvVars($buf);
 		$buf = self::replaceViewAssignments($buf);
+		$buf = self::replaceGlobalAssignments($buf);
 
 		if(preg_match_all('~^@include "([^"]+)";?~m',$buf,$matches)){
 		//if(preg_match_all('~# ?include <([^>]+)>~',$buf,$matches)){
