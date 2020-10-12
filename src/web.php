@@ -35,4 +35,16 @@ register_shutdown_function('_shut');
 define('_BASE_URL',$_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'{{ APP_BASEURI }}');
 define('_BASE_URI','{{ APP_BASEURI }}');
 define('_LANG_DEF','{{ LANG_DEF }}');
-define('_REQ_URI',$_SERVER['REQUEST_URI']);
+
+$uri = $_SERVER['REQUEST_URI'];
+// remove query string
+if(false !== ($pos=mb_strrpos($uri,'?'))){
+	$uri = mb_substr($uri,0,$pos);
+}
+
+// remove basepath from uri
+if(mb_strpos($uri,'{{ APP_BASEURI }}')===0){
+	$uri = mb_substr($uri,mb_strlen('{{ APP_BASEURI }}'));
+}
+
+define('_URI',$uri);
