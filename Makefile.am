@@ -23,6 +23,7 @@ deploy:
 	rsync -avh --delete --exclude='.git/' \
 		"$(abs_builddir)/dist/"\
 		$(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)
+	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "chmod -R u+x $(DEPLOY_PATH)/public/asset"
 else
 deploy:
 	echo -e "$(CERR)This project is not deployable...$(CNUL)"
@@ -123,7 +124,7 @@ public:
 	@cp -r $(abs_builddir)/src/public/* $(abs_builddir)/dist/public
 	@printf "done!\n"
 
-build: view public
+build: view
 
 run:
 	cd $(abs_builddir)/dist && php -S localhost:8080
