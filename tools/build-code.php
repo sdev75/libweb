@@ -16,6 +16,7 @@ CodeBuilder::setEnvVars($env);
 CodeBuilder::setIncludePath($opt['include-path']);
 CodeBuilder::collectFiles($opt['in']);
 CodeBuilder::$metadata = new CodeControllerMetaCollection();
+CodeBuilder::$inlines = new InlineFunctions();
 
 foreach(CodeBuilder::$files as $filename){
 	CodeBuilder::build($filename, $opt['in'],$opt['out']);

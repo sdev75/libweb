@@ -23,6 +23,126 @@ class CodeRoute {
 	}
 }
 
+class CodeFunctionCalls {
+	public array $data = [];
+	public function parse(string $buf){
+
+		$lines = explode("\n", $buf);
+		foreach($lines as $line){
+			if(mb_substr($line, 0, 2) === '//'){
+				continue;
+			}
+
+		}
+
+		// $offset = 0;
+		// while(($pos = mb_strpos($buf, "\n", $offset)) !== FALSE){
+		// 	$eol = mb_strpos($buf, "\n", $pos+1);
+		// 	if($eol === FALSE){
+		// 		$offset = $pos + 1;
+		// 		continue;
+		// 	}
+
+
+			
+		// 	$line = mb_substr($buf,$pos,$eol);
+		// 	var_dump(["line: '$line'"]);
+
+		// 	$offset = $pos + 1;
+		// }
+	}
+}
+
+class InlineFunctions {
+	public array $data = [];
+	
+	public function parse(string $buf){
+		$offset = 0;
+		while(($pos = mb_strpos($buf, "#inline\n", $offset)) !== FALSE){
+			
+			$parentesis1 = mb_strpos($buf, '(', $pos);
+			if($parentesis1 === FALSE){
+				$offset = $pos + 1;
+				continue;
+			}
+
+
+			$fn_name = mb_substr($buf, $pos+16, $parentesis1-$pos-16);
+			$fn_name = trim($fn_name);
+			$this->data[$fn_name] = [
+				'offset_beg' => $pos,
+				'offset_end' => $pos,
+				'valid' => false,
+			];
+			
+			$parentesis2 = mb_strpos($buf, ')', $parentesis1);
+			if($parentesis2 === FALSE){
+				$offset = $pos + 1;
+				continue;
+			}
+
+			$params = mb_substr($buf,$parentesis1+1, $parentesis2-$parentesis1-1);
+			$params_arr = explode(',', $params);
+			$this->data[$fn_name]['params'] = [];
+			if(count($params_arr)){
+				foreach($params_arr as $param){
+					$this->data[$fn_name]['params'][]= $param;
+				}
+			}
+
+			$len = strlen("#{$fn_name}_beg");
+			$body_beg = mb_strpos($buf, "#{$fn_name}_beg", $parentesis2);
+			if($body_beg === FALSE){
+				continue;
+			}
+
+			$body_end = mb_strpos($buf, "#{$fn_name}_end", $body_beg);
+			if($body_end === FALSE){
+				$offset = $pos + 1;
+				continue;
+			}
+
+			$body = mb_substr($buf, $body_beg+$len, $body_end-$body_beg-$len);
+			$this->data[$fn_name]['body'] = $body;
+
+			$pos_end = mb_strpos($buf, '}', $body_end);
+			if($pos_end === FALSE){
+				$offset = $pos + 1;
+				continue;
+			}
+
+			$this->data[$fn_name]['offset_end'] = $pos_end;
+			$this->data[$fn_name]['valid'] = true;
+
+			$t = mb_substr($buf, $pos, $pos_end-$pos+1);
+			$buf = str_replace($t, '', $buf);
+			$offset = $pos + 1;
+		}
+
+		return $buf;
+
+	}
+
+	public function parseFunctionCalls(string $buf){
+		if(preg_match_all('~^([a-zA-Z_]+ ?\()~m',$buf,$matches)){
+			$len = count($matches[0]);
+			for($i=0;$i<$len;$i++){
+				$needle = $matches[0][$i];
+				$fn_name = $matches[1][$i];
+
+				$this->calls[$fn_name] = 
+				var_dump($fn_name);
+			}
+		}
+	}
+
+	public function replace(string $buf){
+		foreach($this->data as $key => $a){
+			var_dump($key,$a);
+		}
+	}
+}
+
 /*
 controller
 	page
@@ -175,6 +295,7 @@ class CodeBuilder {
 	public static $includes = [];
 	public static CodeControllerMetaCollection $metadata;
 	public static $libver = 0;
+	public static InlineFunctions $inlines;
 
 	public static function setEnvVars(array $env){
 		self::$env = $env;
@@ -450,8 +571,18 @@ class CodeBuilder {
 		return [];
 	}
 
+	// TODO: under development
+	public static function parseInlineFunctions(string $buf){
+		$x = new CodeFunctionCalls();
+		$x->parse($buf);
+		$buf = self::$inlines->parse($buf);
+		$buf = self::$inlines->replace($buf);
+		return $buf;
+	}
+
 	public static function parseAndPatch(string $buf, string $controller_path) {
 		
+		//$buf = self::parseInlineFunctions($buf);
 		$buf = self::patchEnvVars($buf);
 		$buf = self::replaceViewAssignments($buf);
 
