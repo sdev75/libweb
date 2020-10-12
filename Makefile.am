@@ -12,7 +12,7 @@ DFLAGS=--debug 1
 else
 DFLAGS=--debug 0
 endif
-
+	
 init: env
 	echo -e ""
 
@@ -23,7 +23,8 @@ deploy:
 	rsync -avh --delete --exclude='.git/' \
 		"$(abs_builddir)/dist/"\
 		$(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)
-	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "chmod -R u+x $(DEPLOY_PATH)/public/asset"
+	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "find $(DEPLOY_PATH)/public -type d -exec chmod 755 {} +"
+	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "find $(DEPLOY_PATH)/public -type f -exec chmod 644 {} +"
 else
 deploy:
 	echo -e "$(CERR)This project is not deployable...$(CNUL)"
