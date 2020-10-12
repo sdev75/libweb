@@ -455,7 +455,7 @@ class CodeBuilder {
 		$buf = self::patchEnvVars($buf);
 		$buf = self::replaceViewAssignments($buf);
 
-		if(preg_match_all('~^@include "([^"]+)";?~',$buf,$matches)){
+		if(preg_match_all('~^@include "([^"]+)";?~m',$buf,$matches)){
 		//if(preg_match_all('~# ?include <([^>]+)>~',$buf,$matches)){
 			$len = count($matches[0]);
 		
