@@ -339,7 +339,7 @@ class ViewParser{
 		if($flag & self::VAR_FLAG_SCOPEVAR){
 			$res = "\$$var";
 		}else{
-			$res = "\$_view_vars['$var']";
+			$res = "\$_view['$var']";
 		}
 		
 		return $res;

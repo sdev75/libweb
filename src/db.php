@@ -7,6 +7,13 @@ class db {
 	public static $query;
 	public static $params = [];
 
+	public static function init($dsn,$user,$pass){
+		db::$pdo = new PDO($dsn,$user,$pass,[
+			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+			PDO::MYSQL_ATTR_LOCAL_INFILE => 1,
+		]);
+	}
+
 	public static function close(){
 		if(self::$pdo && self::$pdo->inTransaction()){
 			self::$pdo->rollback();
@@ -301,8 +308,3 @@ class db {
 		return false;
 	}
 }
-
-db::$pdo = new PDO('{{db_dsn}}','{{db_user}}','{{db_pass}}',[
-	PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-	PDO::MYSQL_ATTR_LOCAL_INFILE => 1,
-]);

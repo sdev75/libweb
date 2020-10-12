@@ -119,6 +119,57 @@ class ViewBuilder {
 		return [];
 	}
 
+
+	public static function replaceGlobalVariable(string $buf, string $keyword){
+		
+		$k = "\$_{$keyword}";
+		
+		$offset = 0;
+		while(($beg = mb_strpos($buf, $k, $offset)) !== FALSE){
+
+			$end = mb_strpos($buf, "\n", $beg);
+			if($end === FALSE){
+				$offset = $beg + 1;
+				continue;
+			}
+
+			$len = strlen($k);
+			$t = mb_substr($buf, $beg+$len, $end-$beg-$len);
+			$t_end = mb_strrpos($t,';',0);
+			
+
+			if($t_end === FALSE){
+				// if (fn($_val))
+				$t_end = mb_strrpos($t,')',0);
+				if($t_end === FALSE){
+					$offset = $beg + 1;
+					continue;
+				}
+	
+				$t_del = ')';
+				$needle = mb_substr($buf, $beg, $end - $beg -1 );
+			}else{
+				$t_del = ';';
+				$needle = mb_substr($buf, $beg, $end - $beg );
+			}
+
+			$t = mb_substr($t,0,$t_end);
+			$replace = "\$_SERVER['_{$keyword}']";
+			$buf = str_replace($needle, "{$replace}{$t}{$t_del}", $buf);
+		
+			$offset = $beg + 1;
+		}
+
+		return $buf;
+	}
+
+	public static function replaceGlobalAssignments(string $buf){
+		$buf = self::replaceGlobalVariable($buf, 'msg');
+		$buf = self::replaceGlobalVariable($buf, 'errors');
+		$buf = self::replaceGlobalVariable($buf, 'redirect');
+		return $buf;
+	}
+
 	public static function build(array $view, string $path_code, string $inpath, string $outpath){
 	
 		$code_filename = "{$path_code}/{$view['controller']}";
@@ -161,20 +212,21 @@ class ViewBuilder {
 			$buf .= $buf_view;
 			$t = file_get_contents(self::$include_path."/lib/libw-{$inc['ver']}/include/view.epilog.php");
 			$buf .= $t;
+			$buf = self::replaceGlobalAssignments($buf);
 		}else{
 			$buf .= "\n?>\n";
 			$buf .= $buf_view;
 		}
 
-		$inc = self::getIncludeByCode($includes,'lib/libw/session.php');
-		if(!empty($inc)){
-			$t = <<< EOT
-			if(!empty(\$_SESSION['userdata'])){
-				\$_view_vars['_user'] = \$_SESSION['userdata'];
-			}
-			EOT;
-			$buf .= $t;
-		}
+		// $inc = self::getIncludeByCode($includes,'lib/libw/session.php');
+		// if(!empty($inc)){
+		// 	$t = <<< EOT
+		// 	if(!empty(\$_SESSION['userdata'])){
+		// 		\$_view_vars['_user'] = \$_SESSION['userdata'];
+		// 	}
+		// 	EOT;
+		// 	$buf .= $t;
+		// }
 
 		if(self::$pp){
 			$buf = self::$pp->parseIfElseCond($buf);

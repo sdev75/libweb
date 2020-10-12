@@ -1,23 +1,19 @@
 <?php
 
+// $_error['field_id'] = "error with psasword"
 function _shut(){
 	$e = error_get_last();
 	if($e === NULL){
 
-		// if(!empty($_redirect)){
-		// 	if(session_status() === PHP_SESSION_ACTIVE){
-				
-		// 		// foreach($_request as $key){
-		// 		// 	$_SESSION['_request'][$key] = $_REQUEST[$key];
-		// 		// }
-		// 		// $_SESSION['_msg'] = $_msg;
-		// 		// $_SESSION['_errors'] = $_errors;
-		// 		// $_SESSION['_redirect'] = true;
-		// 		session_write_close();	
-		// 	}
-		// 	header("Location: $_redirect");
-		// }
-		error_log(var_export($_request,true));
+		if(!empty($_redirect)){
+			if(session_status() === PHP_SESSION_ACTIVE){
+				$_SESSION['_msg'] = $_msg;
+				$_SESSION['_errors'] = $_errors;
+				$_SESSION['_redirect'] = true;
+				session_write_close();	
+			}
+			header("Location: {$_redirect}");
+		}
 		error_log("SESSION STATUS: ". session_status());
 		return;
 	}
@@ -66,7 +62,7 @@ if(mb_strpos($uri,'{{ APP_BASEURI }}')===0){
 
 define('_URI',$uri);
 
-$_redirectx = 'false;testing;';
-$_request = ['test','testing'];
+$_redirect = false;
+$_msg = [];
 $_errors = [];
-$_view = [];
+

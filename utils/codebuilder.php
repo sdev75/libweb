@@ -541,28 +541,50 @@ class CodeBuilder {
 	}
 
 	public static function replaceGlobalVariable(string $buf, string $keyword){
+		
 		$k = "\$_{$keyword}";
-		$replace = "\$_SERVER['_{$keyword}']";
-		$beg = mb_strpos($buf,$k, 0);
-		if ($beg !== FALSE){
+		
+		$offset = 0;
+		while(($beg = mb_strpos($buf, $k, $offset)) !== FALSE){
+
 			$end = mb_strpos($buf, "\n", $beg);
+			if($end === FALSE){
+				$offset = $beg + 1;
+				continue;
+			}
+
 			$len = strlen($k);
 			$t = mb_substr($buf, $beg+$len, $end-$beg-$len);
 			$t_end = mb_strrpos($t,';',0);
-			if($t_end !== FALSE){
-				$t = mb_substr($t,0,$t_end);
-				$needle = mb_substr($buf, $beg, $end - $beg);
-				$buf = str_replace($needle, "{$replace}{$t};", $buf);
-				return $buf;
+			
+
+			if($t_end === FALSE){
+				// if (fn($_val))
+				$t_end = mb_strrpos($t,')',0);
+				if($t_end === FALSE){
+					$offset = $beg + 1;
+					continue;
+				}
+	
+				$t_del = ')';
+				$needle = mb_substr($buf, $beg, $end - $beg -1 );
+			}else{
+				$t_del = ';';
+				$needle = mb_substr($buf, $beg, $end - $beg );
 			}
+
+			$t = mb_substr($t,0,$t_end);
+			$replace = "\$_SERVER['_{$keyword}']";
+			$buf = str_replace($needle, "{$replace}{$t}{$t_del}", $buf);
+		
+			$offset = $beg + 1;
 		}
 
 		return $buf;
 	}
 
 	public static function replaceGlobalAssignments(string $buf){
-		$buf = self::replaceGlobalVariable($buf, 'request');
-		$buf = self::replaceGlobalVariable($buf, 'messages');
+		$buf = self::replaceGlobalVariable($buf, 'msg');
 		$buf = self::replaceGlobalVariable($buf, 'errors');
 		$buf = self::replaceGlobalVariable($buf, 'redirect');
 		return $buf;
