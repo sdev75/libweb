@@ -21,10 +21,11 @@ deploy:
 	@echo -e "$(CINFO)Preparing deploying...$(CNUL)"
 	@echo -e "Deploying to $(DEPLOY_USER)@$(DEPLOY_HOST)..."
 	rsync -avh --delete --exclude='.git/' \
+		--chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r \ 
 		"$(abs_builddir)/dist/"\
 		$(DEPLOY_USER)@$(DEPLOY_HOST):$(DEPLOY_PATH)
-	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "find $(DEPLOY_PATH)/public -type d -exec chmod 755 {} +"
-	ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "find $(DEPLOY_PATH)/public -type f -exec chmod 644 {} +"
+# ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "find $(DEPLOY_PATH)/public -type d -exec chmod 755 {} +"
+# ssh $(DEPLOY_USER)@$(DEPLOY_HOST) "find $(DEPLOY_PATH)/public -type f -exec chmod 644 {} +"
 else
 deploy:
 	echo -e "$(CERR)This project is not deployable...$(CNUL)"
