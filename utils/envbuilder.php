@@ -14,8 +14,10 @@ class EnvBuilder {
 				fprintf(STDERR, "\e[0;93m Skipped $line\e[0m\n");
 				continue;
 			}
-			$t = mb_convert_case($pair[0],MB_CASE_LOWER);
-			self::$array[$t] = ['key'=>$pair[0], 'val'=>$pair[1]];
+			$key = array_shift($pair);
+			$val = implode('=',$pair);
+			$t = mb_convert_case($key,MB_CASE_LOWER);
+			self::$array[$t] = ['key'=>$key, 'val'=>$val];
 		}
 
 		foreach(self::$array as $k => &$v){
@@ -51,9 +53,11 @@ class EnvBuilder {
 			if(count($pair) < 2){
 				continue;
 			}
-			$t = mb_convert_case($pair[0],MB_CASE_LOWER);
-			$pair[1] = str_replace('"','',$pair[1]);
-			self::$array[$t] = $pair[1];
+			$key = array_shift($pair);
+			$val = implode('=',$pair);
+			$t = mb_convert_case($key,MB_CASE_LOWER);
+			$val = str_replace('"','',$val);
+			self::$array[$t] = $val;
 		}
 	}
 }
