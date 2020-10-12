@@ -48,3 +48,8 @@ if(mb_strpos($uri,'{{ APP_BASEURI }}')===0){
 }
 
 define('_URI',$uri);
+
+$_redirect = false;
+$_request = [];
+$_errors = [];
+$_view = [];
