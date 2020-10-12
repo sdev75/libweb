@@ -5,7 +5,6 @@ class db {
 	public static $pdo;
 	public static $sth;
 	public static $query;
-	public static $error;
 	public static $params = [];
 
 	public static function close(){
@@ -14,6 +13,8 @@ class db {
 		}
 		self::$pdo = null;
 		self::$sth = null;
+		self::$query = null;
+		self::$params = null;
 	}
 
 	// RETURNS ROW AFFECTED (USEFUL FOR DELETE;UPDATE)
@@ -153,7 +154,7 @@ class db {
 	}
 
 	public static function updateIn($table,$in_key,$in_value,array $data){
-		$binds = array();
+		$binds = [];
 		$query = "UPDATE `{$table}` SET ";
 
 		$pair = '';
@@ -172,7 +173,7 @@ class db {
 
 	public static function replace($table,array $data){
 		$query = "REPLACE INTO `{$table}` SET ";
-		$binds = array();
+		$binds = [];
 		$pair = '';
 		foreach($data as $k=>$v){
 			$pair .= "{$k}=:{$k},";
@@ -200,20 +201,6 @@ class db {
 		}
 
 		return $sth->fetch(PDO::FETCH_ASSOC);
-	}
-
-	public static function select2($table,$by,$value){
-		$sth = self::$pdo->prepare("
-			SELECT * FROM `{$table}`
-			WHERE `{$by}` = ?
-			LIMIT 1
-		");
-		self::$query = $sth->queryString;
-		$sth->execute(array($value));
-
-		$row = new SkDatabaseRow($table,$by,$value);
-		$row->assign($sth->fetch(PDO::FETCH_ASSOC));
-		return $row;
 	}
 
 	public static function selectOne($query){
