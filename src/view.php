@@ -1,4 +1,4 @@
 <?php
 $_view_vars = [];
-$_view_vars['_baseurl'] = _BASEURL;
-$_view_vars['_baseuri'] = '/'.ltrim(_BASEURI,'/');
+$_view_vars['_base_url'] = _BASE_URL;
+$_view_vars['_base_uri'] = '/'.ltrim(_BASE_URI,'/');
