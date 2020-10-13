@@ -143,36 +143,6 @@ class InlineFunctions {
 	}
 }
 
-/*
-controller
-	page
-		patterns
-			/client/[a-z]
-			/clientx/[a-z]
-		data
-			amp
-				view = client/amp/client.phtml
-				method = get [default]
-			html [default]
-				script = client/client.phtml
-				method = get post
-			json
-				method get post
-
-	page2
-		patterns
-			/client2/[a-z]
-			/client2x/[a-z]
-		data
-			amp
-				script = client/amp/client.phtml
-				method = get [default]
-			html [default]
-				script = client/client.phtml
-				method = get post
-			json
-				method get post	
-*/
 class CodeControllerMetaCollection {
 	public array $data = [];
 
@@ -225,6 +195,7 @@ class CodeControllerMeta {
 	public array $patterns = [];
 	public bool $valid = false;
 	public bool $has_view = false;
+	public array $viewvars = [];
 
 	public function setFormat(string $format){
 		$this->format = strtolower($format);
@@ -243,6 +214,10 @@ class CodeControllerMeta {
 
 		$this->view = $view;
 		$this->has_view = true;
+	}
+
+	public function addViewVar(string $key){
+		$this->viewvars[$key] = 1;
 	}
 
 	public function addPattern(string $pattern){
@@ -630,12 +605,28 @@ class CodeBuilder {
 		return $buf;
 	}
 
+	public static function collectViewAssignments(string $buf, CodeControllerMeta $meta){
+		preg_match_all("~_view\[.([a-zA-Z_.-]+).\] ?=~",$buf,$matches);
+		$len = count($matches[0]);
+		if($len){
+			var_dump($matches);
+			for($i=0;$i<$len;$i++){
+				$needle = $matches[0][$i];
+				$key = $matches[1][$i];
+				$meta->addViewVar($key);
+			}
+		}
+
+		return $buf;
+	}
+
 	public static function parseAndPatch(string $buf, string $controller_path) {
 		
 		//$buf = self::parseInlineFunctions($buf);
 		$buf = self::patchEnvVars($buf);
-		$buf = self::replaceViewAssignments($buf);
+		//$buf = self::replaceViewAssignments($buf);
 		$buf = self::replaceGlobalAssignments($buf);
+		//$buf = self::collectViewAssignments($buf);
 
 		if(preg_match_all('~^@include "([^"]+)";?~m',$buf,$matches)){
 		//if(preg_match_all('~# ?include <([^>]+)>~',$buf,$matches)){
