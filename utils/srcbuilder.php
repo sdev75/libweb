@@ -47,6 +47,9 @@ class SrcBuilder {
 		$objects = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path),
 			RecursiveIteratorIterator::SELF_FIRST);
 		foreach($objects as $name => $object){
+			if(is_dir($name)){
+				continue;
+			}
 			$ext = pathinfo($name,PATHINFO_EXTENSION);
 			if($ext === ''){
 				continue;
