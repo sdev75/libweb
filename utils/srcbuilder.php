@@ -48,19 +48,24 @@ class SrcBuilder {
 			RecursiveIteratorIterator::SELF_FIRST);
 		foreach($objects as $name => $object){
 			$ext = pathinfo($name,PATHINFO_EXTENSION);
-			if($ext !== 'php'){
+			if($ext === ''){
 				continue;
 			}
-			$files[]=$name;
+			$files[]=['ext'=>$ext, 'filename'=>$name];
 		}
-
 		self::$files = $files;
 	}
 
-	public static function build(string $filename, string $inpath, string $outpath){
+	public static function build(string $filename, string $ext, string $inpath, string $outpath){
 		$buf = file_get_contents($filename);
 		$buf = self::parseAndPatch($buf);
-		$buf = self::patch($buf);
+
+		switch($ext){
+			case 'php':
+				$buf = self::patchPHP($buf);
+			default:
+		}
+		
 		//$buf = self::stripSpaces($buf);
 		$buf = self::stripHashComments($buf);
 		$buf = self::stripMultilineComments($buf);
@@ -75,7 +80,7 @@ class SrcBuilder {
 		fprintf(STDOUT, "\e[37m \t+ %-80s\t>> %-40s\e[0m\n",$filename,$finalname);
 	}
 
-	public static function patch($buf){
+	public static function patchPHP($buf){
 		$buf = str_replace('<?php','',$buf);
 		$buf = str_replace("\nn","\n",$buf);
 		$date = date('m/d/Y h:i:s a',time());
