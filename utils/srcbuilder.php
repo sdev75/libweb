@@ -50,6 +50,10 @@ class SrcBuilder {
 			if(is_dir($name)){
 				continue;
 			}
+
+			$dir = pathinfo($name,PATHINFO_DIRNAME);
+			var_dump($dir);
+
 			$ext = pathinfo($name,PATHINFO_EXTENSION);
 			if($ext === ''){
 				continue;

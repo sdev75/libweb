@@ -1,0 +1,20 @@
+#!/bin/bash
+if [ $# -lt 2 ]; then
+    echo "Format: libver [12.5] [16.4] [path] - libver [old] [new] [path]"
+    exit
+fi
+
+
+oldver=$1
+newver=$2
+if [ -z $3 ]; then
+    path=""
+else
+    path=${3//../}
+fi
+
+find @abs_builddir@/src/code/$path -type f -print0 | 
+while IFS= read -r -d '' line; do 
+    echo -e "Processing '$line'"
+    sed -i "s/libw\-$oldver/libw\-$newver/g" $line
+done
