@@ -1,6 +1,7 @@
 <?php
 
 $_view['_msg'] = $_msg;
+$_view['_errors_json'] = "[]";
 if(!empty($_errors)){
 	$_view['_errors'] = [];
 	foreach($_errors as $a){

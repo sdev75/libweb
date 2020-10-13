@@ -14,7 +14,6 @@ function _shut(){
 			}
 			header("Location: {$_redirect}");
 		}
-		error_log("SESSION STATUS: ". session_status());
 		return;
 	}
 
